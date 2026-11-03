@@ -1,54 +1,52 @@
-
 import type { Request, Response, NextFunction } from "express";
-import jwt, { type JwtPayload } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
+import { env } from "../config/env.js";
+import { AppError } from "../utils/AppError.js";
+import type { UserRole } from "../models/User.js";
 
 export interface AuthRequest extends Request {
   user?: {
     id: string;
-    role: "customer" | "admin";
+    role: UserRole;
   };
 }
 
+interface JwtTokenPayload {
+  sub: string;
+  role: UserRole;
+  iat?: number;
+  exp?: number;
+}
+
+/**
+ * Authentication Middleware:
+ * Verifies JWT token in the Authorization header.
+ */
 export const authMiddleware = (
   req: AuthRequest,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ): void => {
   const authorization = req.headers.authorization;
 
   if (!authorization || !authorization.startsWith("Bearer ")) {
-    res.status(401).json({
-      success: false,
-      message: "Authentication token is required",
-    });
-    return;
+    return next(AppError.unauthorized("Authentication token is required"));
   }
 
   const token = authorization.split(" ")[1];
-  const jwtSecret = process.env.JWT_SECRET;
 
-  if (!token || !jwtSecret) {
-    res.status(401).json({
-      success: false,
-      message: "Invalid authentication token",
-    });
-    return;
+  if (!token) {
+    return next(AppError.unauthorized("Authentication token is missing"));
   }
 
   try {
-    const decoded = jwt.verify(token, jwtSecret);
+    const decoded = jwt.verify(token, env.JWT_SECRET) as JwtTokenPayload;
 
     if (
-      typeof decoded === "string" ||
       !decoded.sub ||
-      typeof decoded.sub !== "string" ||
-      (decoded.role !== "customer" && decoded.role !== "admin")
+      !["customer", "agent", "admin"].includes(decoded.role)
     ) {
-      res.status(401).json({
-        success: false,
-        message: "Invalid authentication token",
-      });
-      return;
+      return next(AppError.unauthorized("Invalid token payload"));
     }
 
     req.user = {
@@ -57,10 +55,30 @@ export const authMiddleware = (
     };
 
     next();
-  } catch {
-    res.status(401).json({
-      success: false,
-      message: "Token is invalid or expired",
-    });
+  } catch (error) {
+    if (error instanceof jwt.TokenExpiredError) {
+      return next(AppError.unauthorized("Token has expired. Please login again."));
+    }
+    return next(AppError.unauthorized("Invalid authentication token"));
   }
+};
+
+/**
+ * Authorization Middleware (RBAC):
+ * Restricts access to specific user roles.
+ */
+export const restrictTo = (...allowedRoles: UserRole[]) => {
+  return (req: AuthRequest, _res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      return next(AppError.unauthorized("You must be logged in to access this resource"));
+    }
+
+    if (!allowedRoles.includes(req.user.role)) {
+      return next(
+        AppError.forbidden("You do not have permission to perform this action")
+      );
+    }
+
+    next();
+  };
 };

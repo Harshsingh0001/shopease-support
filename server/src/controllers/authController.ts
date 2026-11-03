@@ -1,64 +1,42 @@
-
-import type { Request, Response } from "express";
+import type { Request, Response, NextFunction } from "express";
 import bcrypt from "bcryptjs";
-import User from "../models/User.js";
 import jwt from "jsonwebtoken";
+import User, { type UserRole, type UserLanguage } from "../models/User.js";
+import { AppError } from "../utils/AppError.js";
+import { env } from "../config/env.js";
 import type { AuthRequest } from "../middleware/authMiddleware.js";
 
+/**
+ * Register a new user
+ */
 export const register = async (
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role, preferredLanguage } = req.body as {
+      name: string;
+      email: string;
+      password: string;
+      role?: UserRole;
+      preferredLanguage?: UserLanguage;
+    };
 
-    // Validate required fields
-    if (
-      typeof name !== "string" ||
-      typeof email !== "string" ||
-      typeof password !== "string" ||
-      !name.trim() ||
-      !email.trim() ||
-      !password
-    ) {
-      res.status(400).json({
-        success: false,
-        message: "Name, email, and password are required",
-      });
-      return;
-    }
-
-    if (password.length < 8) {
-      res.status(400).json({
-        success: false,
-        message: "Password must be at least 8 characters long",
-      });
-      return;
-    }
-
-    const normalizedEmail = email.trim().toLowerCase();
-
-    // Check whether the account already exists
-    const existingUser = await User.findOne({
-      email: normalizedEmail,
-    });
-
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
-      res.status(409).json({
-        success: false,
-        message: "An account with this email already exists",
-      });
-      return;
+      return next(new AppError("An account with this email already exists", 409));
     }
 
-    // Hash the password before saving
     const hashedPassword = await bcrypt.hash(password, 12);
 
     const user = await User.create({
-      name: name.trim(),
-      email: normalizedEmail,
+      name,
+      email,
       password: hashedPassword,
-      role: "customer",
+      role: role || "customer",
+      preferredLanguage: preferredLanguage || "en",
+      status: "active",
       isVerified: false,
     });
 
@@ -70,82 +48,39 @@ export const register = async (
         name: user.name,
         email: user.email,
         role: user.role,
+        preferredLanguage: user.preferredLanguage,
+        status: user.status,
       },
     });
-  } catch (error: unknown) {
-    // Handle duplicate email in case simultaneous requests race
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      error.code === 11000
-    ) {
-      res.status(409).json({
-        success: false,
-        message: "An account with this email already exists",
-      });
-      return;
-    }
-
-    console.error("Registration error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Something went wrong during registration",
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
-
+/**
+ * Login user and issue JWT token
+ */
 export const login = async (
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   try {
-    const { email, password } = req.body ?? {};
+    const { email, password } = req.body as { email: string; password: string };
 
-    if (
-      typeof email !== "string" ||
-      typeof password !== "string" ||
-      !email.trim() ||
-      !password
-    ) {
-      res.status(400).json({
-        success: false,
-        message: "Email and password are required",
-      });
-      return;
-    }
-
-    const user = await User.findOne({
-      email: email.trim().toLowerCase(),
-    }).select("+password");
+    const user = await User.findOne({ email }).select("+password");
 
     if (!user) {
-      res.status(401).json({
-        success: false,
-        message: "Invalid email or password",
-      });
-      return;
+      return next(AppError.unauthorized("Invalid email or password"));
     }
 
-    const isPasswordValid = await bcrypt.compare(
-      password,
-      user.password
-    );
+    if (user.status === "suspended") {
+      return next(AppError.forbidden("Your account has been suspended. Please contact support."));
+    }
 
+    const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      res.status(401).json({
-        success: false,
-        message: "Invalid email or password",
-      });
-      return;
-    }
-
-    const jwtSecret = process.env.JWT_SECRET;
-
-    if (!jwtSecret) {
-      throw new Error("JWT_SECRET is missing from .env");
+      return next(AppError.unauthorized("Invalid email or password"));
     }
 
     const token = jwt.sign(
@@ -153,8 +88,8 @@ export const login = async (
         sub: user._id.toString(),
         role: user.role,
       },
-      jwtSecret,
-      { expiresIn: "15m" }
+      env.JWT_SECRET,
+      { expiresIn: "7d" }
     );
 
     res.status(200).json({
@@ -166,31 +101,28 @@ export const login = async (
         name: user.name,
         email: user.email,
         role: user.role,
+        preferredLanguage: user.preferredLanguage,
+        status: user.status,
       },
     });
-  } catch (error: unknown) {
-    console.error("Login error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Something went wrong during login",
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
+/**
+ * Get currently authenticated user details
+ */
 export const getMe = async (
   req: AuthRequest,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const user = await User.findById(req.user?.id);
 
     if (!user) {
-      res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-      return;
+      return next(AppError.notFound("User not found"));
     }
 
     res.status(200).json({
@@ -200,14 +132,24 @@ export const getMe = async (
         name: user.name,
         email: user.email,
         role: user.role,
+        preferredLanguage: user.preferredLanguage,
+        status: user.status,
       },
     });
-  } catch (error: unknown) {
-    console.error("Get current user error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Unable to fetch user details",
-    });
+  } catch (error) {
+    next(error);
   }
+};
+
+/**
+ * Logout
+ */
+export const logout = async (
+  _req: Request,
+  res: Response
+): Promise<void> => {
+  res.status(200).json({
+    success: true,
+    message: "Logged out successfully",
+  });
 };

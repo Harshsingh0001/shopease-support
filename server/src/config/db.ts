@@ -1,15 +1,22 @@
 import mongoose from "mongoose";
+import { env } from "./env.js";
 
 const connectDB = async (): Promise<void> => {
-  const mongoURI = process.env.MONGODB_URI;
-
-  if (!mongoURI) {
-    throw new Error("MONGODB_URI is missing in the .env file");
+  try {
+    const conn = await mongoose.connect(env.MONGODB_URI);
+    console.log(`✅ MongoDB connected: ${conn.connection.host}`);
+  } catch (error) {
+    console.error("❌ MongoDB connection failed:", error);
+    process.exit(1);
   }
-
-  await mongoose.connect(mongoURI);
-
-  console.log("MongoDB connected successfully");
 };
+
+mongoose.connection.on("disconnected", () => {
+  console.warn("⚠️  MongoDB disconnected. Attempting reconnection...");
+});
+
+mongoose.connection.on("error", (err) => {
+  console.error("❌ MongoDB connection error:", err);
+});
 
 export default connectDB;

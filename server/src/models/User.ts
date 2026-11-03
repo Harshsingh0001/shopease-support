@@ -1,12 +1,19 @@
-
 import mongoose, { Schema, type Document } from "mongoose";
+
+export type UserRole = "customer" | "agent" | "admin";
+export type UserLanguage = "en" | "hi" | "hinglish";
+export type UserStatus = "active" | "suspended";
 
 export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
-  role: "customer" | "admin";
+  role: UserRole;
+  status: UserStatus;
+  preferredLanguage: UserLanguage;
   isVerified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const userSchema = new Schema<IUser>(
@@ -29,12 +36,25 @@ const userSchema = new Schema<IUser>(
     password: {
       type: String,
       required: [true, "Password is required"],
-      select: false,
+      minlength: [8, "Password must be at least 8 characters"],
+      select: false, // Ensures password hash is excluded from query results by default
     },
     role: {
       type: String,
-      enum: ["customer", "admin"],
+      enum: ["customer", "agent", "admin"],
       default: "customer",
+      index: true,
+    },
+    status: {
+      type: String,
+      enum: ["active", "suspended"],
+      default: "active",
+      index: true,
+    },
+    preferredLanguage: {
+      type: String,
+      enum: ["en", "hi", "hinglish"],
+      default: "en",
     },
     isVerified: {
       type: Boolean,
