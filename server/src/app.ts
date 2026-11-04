@@ -10,6 +10,7 @@ import orderRoutes from "./routes/orderRoutes.js";
 import ticketRoutes from "./routes/ticketRoutes.js";
 import knowledgeRoutes from "./routes/knowledgeRoutes.js";
 import adminKnowledgeRoutes from "./routes/adminKnowledgeRoutes.js";
+import supportAiRoutes from "./routes/supportAiRoutes.js";
 import conversationRoutes from "./routes/conversationRoutes.js";
 
 const app = express();
@@ -46,6 +47,7 @@ app.use("/api/v1/orders", orderRoutes);
 app.use("/api/v1/tickets", ticketRoutes);
 app.use("/api/v1/knowledge", knowledgeRoutes);
 app.use("/api/v1/admin/knowledge", adminKnowledgeRoutes);
+app.use("/api/v1/support", supportAiRoutes);
 app.use("/api/v1/conversations", conversationRoutes);
 
 // 404 Route Handler for any unmatched route

@@ -21,6 +21,8 @@ const envSchema = z.object({
   MONGODB_URI: z.string().min(1, "MONGODB_URI is required"),
   JWT_SECRET: z.string().min(8, "JWT_SECRET must be at least 8 characters"),
   CLIENT_URL: z.string().default("http://localhost:5173"),
+  AI_PROVIDER_API_KEY: z.string().optional(),
+  GEMINI_API_KEY: z.string().optional(),
 });
 
 const parseEnv = () => {

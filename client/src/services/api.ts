@@ -239,4 +239,34 @@ export const api = {
         }
       ),
   },
+
+  // AI Support & Copilot
+  ai: {
+    ask: (payload: { message: string; ticketId?: string }) =>
+      request<{
+        success: boolean;
+        reply: string;
+        analysis: {
+          intent: string;
+          confidence: number;
+          language: string;
+          extractedOrderNumber?: string;
+          needsHumanEscalation: boolean;
+        };
+        groundedSources: string[];
+        isEscalated: boolean;
+      }>("/support/ask", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+
+    generateDraft: (ticketId: string) =>
+      request<{
+        success: boolean;
+        draftReply: string;
+        summary: string;
+      }>(`/support/tickets/${ticketId}/ai-draft`, {
+        method: "POST",
+      }),
+  },
 };

@@ -23,6 +23,7 @@ import {
   AlertTriangle,
   Lock,
   ArrowRight,
+  Sparkles,
 } from "lucide-react";
 import "./App.css";
 
@@ -260,6 +261,9 @@ const MainApp = () => {
     "customer" | "internal_note"
   >("customer");
 
+  const [aiDraftLoading, setAiDraftLoading] = useState(false);
+  const [aiAsking, setAiAsking] = useState(false);
+
   // New Ticket Modal State
   const [showNewTicketModal, setShowNewTicketModal] = useState(false);
   const [newSubject, setNewSubject] = useState("");
@@ -359,6 +363,39 @@ const MainApp = () => {
       await loadTickets();
     } catch (err) {
       console.error("Failed to send message:", err);
+    }
+  };
+
+  // Handle Ask AI (Customer)
+  const handleAskAi = async () => {
+    if (!selectedTicket || !messageInput.trim()) return;
+    setAiAsking(true);
+    try {
+      await api.ai.ask({
+        message: messageInput.trim(),
+        ticketId: selectedTicket._id,
+      });
+      setMessageInput("");
+      await loadMessages(selectedTicket._id);
+      await loadTickets();
+    } catch (err) {
+      console.error("AI Assistant request failed:", err);
+    } finally {
+      setAiAsking(false);
+    }
+  };
+
+  // Handle Generate AI Draft (Staff Copilot)
+  const handleGenerateAiDraft = async () => {
+    if (!selectedTicket) return;
+    setAiDraftLoading(true);
+    try {
+      const res = await api.ai.generateDraft(selectedTicket._id);
+      setMessageInput(res.draftReply);
+    } catch (err) {
+      console.error("Failed to generate AI draft:", err);
+    } finally {
+      setAiDraftLoading(false);
     }
   };
 
@@ -740,32 +777,44 @@ const MainApp = () => {
                       onSubmit={handleSendMessage}
                       className="p-3 border-t border-slate-800 bg-slate-900/60 shrink-0"
                     >
-                      {isStaff && (
-                        <div className="flex items-center gap-4 mb-2 text-xs">
-                          <label className="flex items-center gap-1.5 cursor-pointer">
-                            <input
-                              type="radio"
-                              name="visibility"
-                              checked={messageVisibility === "customer"}
-                              onChange={() => setMessageVisibility("customer")}
-                              className="text-emerald-500 focus:ring-0"
-                            />
-                            <span className="text-slate-300">Reply to Customer (Public)</span>
-                          </label>
-                          <label className="flex items-center gap-1.5 cursor-pointer text-amber-300 font-medium">
-                            <input
-                              type="radio"
-                              name="visibility"
-                              checked={messageVisibility === "internal_note"}
-                              onChange={() => setMessageVisibility("internal_note")}
-                              className="text-amber-500 focus:ring-0"
-                            />
-                            <span className="flex items-center gap-1">
-                              <Lock className="w-3 h-3" /> Internal Staff Note (Private)
-                            </span>
-                          </label>
+                      {isStaff ? (
+                        <div className="flex items-center justify-between mb-2 text-xs">
+                          <div className="flex items-center gap-4">
+                            <label className="flex items-center gap-1.5 cursor-pointer">
+                              <input
+                                type="radio"
+                                name="visibility"
+                                checked={messageVisibility === "customer"}
+                                onChange={() => setMessageVisibility("customer")}
+                                className="text-emerald-500 focus:ring-0"
+                              />
+                              <span className="text-slate-300">Reply to Customer (Public)</span>
+                            </label>
+                            <label className="flex items-center gap-1.5 cursor-pointer text-amber-300 font-medium">
+                              <input
+                                type="radio"
+                                name="visibility"
+                                checked={messageVisibility === "internal_note"}
+                                onChange={() => setMessageVisibility("internal_note")}
+                                className="text-amber-500 focus:ring-0"
+                              />
+                              <span className="flex items-center gap-1">
+                                <Lock className="w-3 h-3" /> Internal Staff Note (Private)
+                              </span>
+                            </label>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={handleGenerateAiDraft}
+                            disabled={aiDraftLoading}
+                            className="flex items-center gap-1 text-[11px] bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 px-2.5 py-1 rounded-lg transition"
+                          >
+                            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                            <span>{aiDraftLoading ? "Drafting..." : "⚡ AI Copilot Draft"}</span>
+                          </button>
                         </div>
-                      )}
+                      ) : null}
 
                       <div className="flex items-center gap-2">
                         <input
@@ -775,13 +824,30 @@ const MainApp = () => {
                           placeholder={
                             isStaff && messageVisibility === "internal_note"
                               ? "Write private staff diagnostic note..."
-                              : "Type your reply..."
+                              : isStaff
+                              ? "Type reply to customer..."
+                              : "Ask ShopEase AI or send a message to staff..."
                           }
                           className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
                         />
+
+                        {!isStaff && (
+                          <button
+                            type="button"
+                            onClick={handleAskAi}
+                            disabled={aiAsking || !messageInput.trim()}
+                            className="flex items-center gap-1 bg-purple-600 hover:bg-purple-500 text-white text-xs px-3 py-2 rounded-xl transition shadow-md shadow-purple-600/20 disabled:opacity-50"
+                            title="Get instant grounded response from ShopEase AI"
+                          >
+                            <Sparkles className="w-3.5 h-3.5" />
+                            <span>{aiAsking ? "Thinking..." : "Ask AI"}</span>
+                          </button>
+                        )}
+
                         <button
                           type="submit"
                           className="bg-emerald-600 hover:bg-emerald-500 text-white p-2 rounded-xl transition"
+                          title="Send message"
                         >
                           <Send className="w-4 h-4" />
                         </button>
