@@ -8,6 +8,8 @@ import authRoutes from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import ticketRoutes from "./routes/ticketRoutes.js";
+import knowledgeRoutes from "./routes/knowledgeRoutes.js";
+import adminKnowledgeRoutes from "./routes/adminKnowledgeRoutes.js";
 import conversationRoutes from "./routes/conversationRoutes.js";
 
 const app = express();
@@ -42,6 +44,8 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/orders", orderRoutes);
 app.use("/api/v1/tickets", ticketRoutes);
+app.use("/api/v1/knowledge", knowledgeRoutes);
+app.use("/api/v1/admin/knowledge", adminKnowledgeRoutes);
 app.use("/api/v1/conversations", conversationRoutes);
 
 // 404 Route Handler for any unmatched route
