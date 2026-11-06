@@ -3,6 +3,8 @@ import {
   getMyOrders,
   getOrderById,
   getAllOrders,
+  createOrder,
+  updateOrderStatus,
 } from "../controllers/orderController.js";
 import { authMiddleware, restrictTo } from "../middleware/authMiddleware.js";
 import { validate } from "../middleware/validate.js";
@@ -16,15 +18,25 @@ const router = Router();
 // Protect all order routes with authentication
 router.use(authMiddleware);
 
+// Customer: create order from cart checkout
+router.post("/", createOrder);
+
 // Customer: list own orders
 router.get("/me", validate({ query: getOrdersQuerySchema }), getMyOrders);
 
-// Staff (Agents & Admins): list all orders across the platform
+// Staff (Agents, Supervisors & Admins): list all orders across the platform
 router.get(
   "/all",
-  restrictTo("agent", "admin"),
+  restrictTo("agent", "supervisor", "admin"),
   validate({ query: getOrdersQuerySchema }),
   getAllOrders
+);
+
+// Staff (Agents, Supervisors & Admins): update order status and tracking
+router.patch(
+  "/:id/status",
+  restrictTo("agent", "supervisor", "admin"),
+  updateOrderStatus
 );
 
 // Get specific order by ID or orderNumber (with ownership validation)

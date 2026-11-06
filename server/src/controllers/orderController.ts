@@ -140,3 +140,91 @@ export const getAllOrders = async (
     next(error);
   }
 };
+
+/**
+ * Create a new order (Customer checkout)
+ */
+export const createOrder = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { items, shippingAddress } = req.body;
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return next(AppError.badRequest("Order must contain at least one item"));
+    }
+
+    const totalAmount = items.reduce(
+      (sum: number, item: { price: number; quantity: number }) =>
+        sum + item.price * (item.quantity || 1),
+      0
+    );
+
+    const count = await Order.countDocuments();
+    const orderNumber = `ORD-${1000 + count + 1}`;
+    const placedAt = new Date();
+    const estimatedDelivery = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+
+    const order = await Order.create({
+      orderNumber,
+      customerId: req.user!.id,
+      items: items.map((i: any) => ({
+        productId: i.productId || i.product?._id || new mongoose.Types.ObjectId(),
+        name: i.name || i.product?.name || "Product",
+        price: i.price || i.product?.price || 0,
+        quantity: i.quantity || 1,
+      })),
+      totalAmount,
+      status: "processing",
+      placedAt,
+      estimatedDelivery,
+      shippingAddress: shippingAddress || {
+        street: "Flat 402, Greenfield Heights",
+        city: "Bengaluru",
+        state: "Karnataka",
+        postalCode: "560102",
+        country: "India",
+      },
+      carrier: "Delhivery Express",
+      trackingNumber: `DLH${Math.floor(100000000 + Math.random() * 900000000)}`,
+    });
+
+    res.status(201).json({
+      success: true,
+      order,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Update order status (Staff only: Agents & Admins)
+ */
+export const updateOrderStatus = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { status, carrier, trackingNumber } = req.body;
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: {
+          ...(status && { status }),
+          ...(carrier && { carrier }),
+          ...(trackingNumber && { trackingNumber }),
+        },
+      },
+      { new: true }
+    );
+    if (!order) {
+      return next(AppError.notFound("Order not found"));
+    }
+    res.status(200).json({ success: true, order });
+  } catch (error) {
+    next(error);
+  }
+};

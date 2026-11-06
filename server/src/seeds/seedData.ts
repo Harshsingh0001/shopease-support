@@ -13,6 +13,7 @@ export const seedDatabase = async (): Promise<void> => {
     await Promise.all([
       User.deleteMany({ email: { $in: [
         "admin@shopease.local",
+        "supervisor@shopease.local",
         "agent@shopease.local",
         "customer@shopease.local",
         "customer2@shopease.local",
@@ -26,9 +27,9 @@ export const seedDatabase = async (): Promise<void> => {
     const defaultPassword = "Password123!";
     const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
-    const [admin, agent, customer1, customer2] = await User.create([
+    const [admin, supervisor, agent, customer1, customer2] = await User.create([
       {
-        name: "Aditi Verma",
+        name: "Vikram Mehta",
         email: "admin@shopease.local",
         password: hashedPassword,
         role: "admin",
@@ -37,29 +38,40 @@ export const seedDatabase = async (): Promise<void> => {
         isVerified: true,
       },
       {
-        name: "Rahul Sharma",
+        name: "Aditi Verma",
+        email: "supervisor@shopease.local",
+        password: hashedPassword,
+        role: "supervisor",
+        preferredLanguage: "en",
+        status: "active",
+        isVerified: true,
+      },
+      {
+        name: "Priya Sharma",
         email: "agent@shopease.local",
         password: hashedPassword,
         role: "agent",
-        preferredLanguage: "hi",
+        preferredLanguage: "en",
         status: "active",
         isVerified: true,
       },
       {
         name: "Aman Gupta",
         email: "customer@shopease.local",
+        phone: "+919876543210",
         password: hashedPassword,
         role: "customer",
-        preferredLanguage: "hinglish",
+        preferredLanguage: "en",
         status: "active",
         isVerified: true,
       },
       {
-        name: "Rohit Mehra",
+        name: "Rohit Kumar",
         email: "customer2@shopease.local",
+        phone: "+919123456789",
         password: hashedPassword,
         role: "customer",
-        preferredLanguage: "en",
+        preferredLanguage: "hi",
         status: "active",
         isVerified: true,
       },

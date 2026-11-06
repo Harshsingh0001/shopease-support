@@ -6,6 +6,7 @@ import Order from "../models/Order.js";
 import AuditLog from "../models/AuditLog.js";
 import { AppError } from "../utils/AppError.js";
 import type { AuthRequest } from "../middleware/authMiddleware.js";
+import { emitNewMessage, emitTicketUpdated } from "../socket/socketServer.js";
 
 /**
  * Generate a unique, readable ticket number like TCK-849301
@@ -307,6 +308,9 @@ export const updateTicket = async (
 
     await ticket.save();
 
+    // Broadcast real-time ticket update
+    emitTicketUpdated(ticket._id.toString(), ticket);
+
     // Record Audit Logs for staff actions
     if (status && status !== previousStatus) {
       await AuditLog.create({
@@ -448,6 +452,20 @@ export const sendTicketMessage = async (
         resourceId: ticket._id,
       });
     }
+
+    // Broadcast new message over WebSocket (with dual-visibility isolation)
+    emitNewMessage(ticket._id.toString(), {
+      _id: message._id,
+      ticketId: ticket._id,
+      senderId: {
+        _id: req.user!.id,
+        role: req.user!.role,
+      },
+      senderRole: req.user!.role,
+      body: message.body,
+      visibility: message.visibility,
+      createdAt: message.createdAt,
+    });
 
     res.status(201).json({
       success: true,

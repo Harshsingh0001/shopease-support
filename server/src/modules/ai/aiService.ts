@@ -5,6 +5,7 @@ import { classifyIntent } from "./intentClassifier.js";
 import { retrieveGroundingContext } from "./contextRetriever.js";
 import { generateAiResponse } from "./llmAdapter.js";
 import type { AiResponseOutput, IntentAnalysis } from "./aiTypes.js";
+import { emitNewMessage, emitTicketUpdated } from "../../socket/socketServer.js";
 
 interface ProcessCustomerQueryParams {
   customerId: string;
@@ -18,6 +19,9 @@ export interface SupportAiResult {
   groundedSources: string[];
   isEscalated: boolean;
   ticketId?: string;
+  agentThoughtProcess?: string[];
+  actionPayload?: any;
+  suggestedAction?: string;
 }
 
 /**
@@ -44,7 +48,9 @@ export const processCustomerQuery = async ({
     message,
     analysis.language,
     analysis.intent,
-    context
+    context,
+    customerId,
+    analysis
   );
 
   let activeTicketId = ticketId;
@@ -55,21 +61,23 @@ export const processCustomerQuery = async ({
 
     if (ticket) {
       // Save customer message
-      await Message.create({
+      const custMsg = await Message.create({
         ticketId: ticket._id,
         senderId: customerId,
         senderRole: "customer",
         body: message,
         visibility: "customer",
       });
+      emitNewMessage(ticket._id.toString(), custMsg);
 
       // Save AI grounded reply
-      await Message.create({
+      const aiMsg = await Message.create({
         ticketId: ticket._id,
         senderRole: "ai",
         body: aiOutput.replyText,
         visibility: "customer",
       });
+      emitNewMessage(ticket._id.toString(), aiMsg);
 
       ticket.lastMessageAt = new Date();
 
@@ -78,6 +86,7 @@ export const processCustomerQuery = async ({
         ticket.status = "in_progress";
         ticket.priority = "high";
         await ticket.save();
+        emitTicketUpdated(ticket._id.toString(), ticket);
 
         // Audit Log Escalation
         await AuditLog.create({
@@ -93,7 +102,7 @@ export const processCustomerQuery = async ({
         });
 
         // Add internal note for the human agent
-        await Message.create({
+        const aiNote = await Message.create({
           ticketId: ticket._id,
           senderRole: "ai",
           body: `🤖 [AI COPILOT SUMMARY]: Customer escalated to human queue. Reason: ${
@@ -101,6 +110,7 @@ export const processCustomerQuery = async ({
           }. Detected intent: ${analysis.intent} (Language: ${analysis.language}).`,
           visibility: "internal_note",
         });
+        emitNewMessage(ticket._id.toString(), aiNote);
       } else {
         await ticket.save();
       }
@@ -113,6 +123,9 @@ export const processCustomerQuery = async ({
     groundedSources: aiOutput.groundedSources,
     isEscalated: aiOutput.isEscalated,
     ticketId: activeTicketId,
+    agentThoughtProcess: aiOutput.agentThoughtProcess,
+    actionPayload: aiOutput.actionPayload,
+    suggestedAction: aiOutput.suggestedAction,
   };
 };
 

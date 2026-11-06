@@ -21,7 +21,10 @@ export const retrieveGroundingContext = async ({
   queryText,
 }: RetrieveContextParams): Promise<GroundingContext> => {
   // 1. Fetch Customer Profile
-  const user = await User.findById(customerId).select("name preferredLanguage");
+  const isValidCustomer = Boolean(customerId && mongoose.isValidObjectId(customerId));
+  const user = isValidCustomer
+    ? await User.findById(customerId).select("name preferredLanguage")
+    : null;
   const customerName = user?.name || "Valued Customer";
   const preferredLanguage = user?.preferredLanguage || "en";
 
@@ -36,7 +39,7 @@ export const retrieveGroundingContext = async ({
 
     if (order) {
       // STRICT IDOR CHECK: Only ground with the order if it actually belongs to this customer!
-      if (order.customerId.toString() === customerId) {
+      if (isValidCustomer && order.customerId.toString() === customerId) {
         orderData = {
           orderNumber: order.orderNumber,
           status: order.status,
@@ -55,8 +58,10 @@ export const retrieveGroundingContext = async ({
             price: i.price,
           })),
           shippingAddress: {
+            street: order.shippingAddress?.street,
             city: order.shippingAddress.city,
             state: order.shippingAddress.state,
+            postalCode: order.shippingAddress?.postalCode,
           },
         };
       } else {
@@ -67,8 +72,16 @@ export const retrieveGroundingContext = async ({
     }
   }
 
-  // 3. If tracking intent and no specific order given, fetch active/recent orders
-  if (intent === "order_tracking" && !orderData) {
+  // 3. If tracking or action intent and no specific order given, fetch active/recent orders
+  if (
+    isValidCustomer &&
+    (intent === "order_tracking" ||
+      intent === "cancel_order" ||
+      intent === "change_address" ||
+      intent === "invoice_request" ||
+      intent === "return_request") &&
+    !orderData
+  ) {
     const orders = await Order.find({ customerId })
       .sort({ placedAt: -1 })
       .limit(3)
@@ -81,6 +94,35 @@ export const retrieveGroundingContext = async ({
         placedAt: new Date(o.placedAt).toLocaleDateString("en-IN"),
         totalAmount: o.totalAmount,
       }));
+
+      // Ground with latest order for actions if none explicitly specified
+      if (intent !== "order_tracking") {
+        const latest = orders[0];
+        orderData = {
+          orderNumber: latest.orderNumber,
+          status: latest.status,
+          carrier: latest.carrier,
+          trackingNumber: latest.trackingNumber,
+          estimatedDelivery: latest.estimatedDelivery
+            ? new Date(latest.estimatedDelivery).toLocaleDateString("en-IN", {
+                weekday: "short",
+                month: "short",
+                day: "numeric",
+              })
+            : undefined,
+          items: latest.items.map((i) => ({
+            name: i.name,
+            quantity: i.quantity,
+            price: i.price,
+          })),
+          shippingAddress: {
+            street: latest.shippingAddress?.street,
+            city: latest.shippingAddress.city,
+            state: latest.shippingAddress.state,
+            postalCode: latest.shippingAddress?.postalCode,
+          },
+        };
+      }
     }
   }
 

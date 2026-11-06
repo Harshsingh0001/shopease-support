@@ -44,7 +44,7 @@ export const authMiddleware = (
 
     if (
       !decoded.sub ||
-      !["customer", "agent", "admin"].includes(decoded.role)
+      !["customer", "agent", "supervisor", "admin"].includes(decoded.role)
     ) {
       return next(AppError.unauthorized("Invalid token payload"));
     }

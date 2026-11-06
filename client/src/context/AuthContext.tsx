@@ -21,7 +21,7 @@ interface AuthContextType {
     preferredLanguage?: UserLanguage
   ) => Promise<void>;
   logout: () => void;
-  quickLogin: (role: "customer" | "customer2" | "agent" | "admin") => Promise<void>;
+  quickLogin: (role: "customer" | "customer2" | "agent" | "supervisor" | "admin") => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -90,11 +90,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // Quick Demo Login shortcut for testing
-  const quickLogin = async (targetRole: "customer" | "customer2" | "agent" | "admin") => {
+  const quickLogin = async (targetRole: "customer" | "customer2" | "agent" | "supervisor" | "admin") => {
     const credentials = {
       customer: { email: "customer@shopease.local", password: "Password123!" },
       customer2: { email: "customer2@shopease.local", password: "Password123!" },
       agent: { email: "agent@shopease.local", password: "Password123!" },
+      supervisor: { email: "supervisor@shopease.local", password: "Password123!" },
       admin: { email: "admin@shopease.local", password: "Password123!" },
     };
     const cred = credentials[targetRole];

@@ -14,8 +14,8 @@ import {
 
 const router = Router();
 
-// Strictly protect all admin knowledge routes
-router.use(authMiddleware, restrictTo("admin"));
+// Strictly protect all admin knowledge routes (accessible by support staff: agents & admins)
+router.use(authMiddleware, restrictTo("admin", "supervisor", "agent"));
 
 // Create new article (draft or published)
 router.post("/", validate({ body: createArticleSchema }), createArticle);

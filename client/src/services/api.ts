@@ -147,6 +147,21 @@ export const api = {
 
     getById: (id: string) =>
       request<{ success: boolean; order: Order }>(`/orders/${id}`),
+
+    create: (payload: { items: { productId: string; name: string; price: number; quantity: number }[]; shippingAddress?: import("../types").ShippingAddress }) =>
+      request<{ success: boolean; order: Order }>("/orders", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+
+    updateStatus: (
+      id: string,
+      payload: { status?: string; carrier?: string; trackingNumber?: string }
+    ) =>
+      request<{ success: boolean; order: Order }>(`/orders/${id}/status`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      }),
   },
 
   // Tickets
@@ -267,6 +282,118 @@ export const api = {
         summary: string;
       }>(`/support/tickets/${ticketId}/ai-draft`, {
         method: "POST",
+      }),
+  },
+
+  // Voice & Telephony
+  voice: {
+    simulateInbound: (payload: { callerNumber: string; callerName?: string }) =>
+      request<{
+        success: boolean;
+        callSid: string;
+        callerName: string;
+        disclosure: string;
+        greeting: string;
+        twiml: string;
+      }>("/voice/inbound?format=json", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+
+    processSpeech: (payload: { callSid: string; text: string; callerNumber: string }) =>
+      request<{
+        success: boolean;
+        transferred: boolean;
+        reply: string;
+        intent?: string;
+        language?: string;
+        groundedSources?: string[];
+        twiml: string;
+      }>("/voice/process-speech?format=json", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+
+    getLogs: (params?: { page?: number; limit?: number; status?: string }) => {
+      const searchParams = new URLSearchParams();
+      if (params?.page) searchParams.set("page", String(params.page));
+      if (params?.limit) searchParams.set("limit", String(params.limit));
+      if (params?.status) searchParams.set("status", params.status);
+      const qs = searchParams.toString();
+      return request<{
+        success: boolean;
+        data: {
+          logs: import("../types").CallLog[];
+          pagination: { page: number; limit: number; total: number; pages: number };
+        };
+      }>(`/voice/logs${qs ? `?${qs}` : ""}`);
+    },
+
+    getLogById: (id: string) =>
+      request<{
+        success: boolean;
+        data: {
+          log: import("../types").CallLog;
+        };
+      }>(`/voice/logs/${id}`),
+  },
+
+  // Knowledge Base Articles
+  knowledge: {
+    list: (category?: string) =>
+      request<{
+        success: boolean;
+        data: {
+          articles: import("../types").KnowledgeArticle[];
+          pagination: { total: number; page: number; pages: number; limit: number };
+        };
+      }>(`/knowledge/search${category ? `?category=${category}` : ""}`),
+
+    adminList: () =>
+      request<{
+        success: boolean;
+        data: {
+          articles: import("../types").KnowledgeArticle[];
+          pagination: { total: number; page: number; pages: number; limit: number };
+        };
+      }>("/admin/knowledge?limit=50"),
+
+    create: (payload: {
+      title: string;
+      category: string;
+      body: string;
+      tags?: string[];
+      published?: boolean;
+    }) =>
+      request<{
+        success: boolean;
+        article: import("../types").KnowledgeArticle;
+      }>("/admin/knowledge", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+
+    update: (
+      id: string,
+      payload: {
+        title?: string;
+        category?: string;
+        body?: string;
+        tags?: string[];
+        published?: boolean;
+      }
+    ) =>
+      request<{
+        success: boolean;
+        article: import("../types").KnowledgeArticle;
+      }>(`/admin/knowledge/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      }),
+
+    delete: (id: string) =>
+      request<{ success: boolean }>(`/admin/knowledge/${id}`, {
+        method: "DELETE",
       }),
   },
 };

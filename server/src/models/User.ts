@@ -1,6 +1,6 @@
 import mongoose, { Schema, type Document } from "mongoose";
 
-export type UserRole = "customer" | "agent" | "admin";
+export type UserRole = "customer" | "agent" | "supervisor" | "admin";
 export type UserLanguage = "en" | "hi" | "hinglish";
 export type UserStatus = "active" | "suspended";
 
@@ -8,6 +8,7 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
+  phone?: string;
   role: UserRole;
   status: UserStatus;
   preferredLanguage: UserLanguage;
@@ -33,6 +34,12 @@ const userSchema = new Schema<IUser>(
       trim: true,
       match: [/^\S+@\S+\.\S+$/, "Please provide a valid email"],
     },
+    phone: {
+      type: String,
+      trim: true,
+      sparse: true,
+      index: true,
+    },
     password: {
       type: String,
       required: [true, "Password is required"],
@@ -41,7 +48,7 @@ const userSchema = new Schema<IUser>(
     },
     role: {
       type: String,
-      enum: ["customer", "agent", "admin"],
+      enum: ["customer", "agent", "supervisor", "admin"],
       default: "customer",
       index: true,
     },

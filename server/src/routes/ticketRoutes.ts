@@ -29,10 +29,10 @@ router.post("/", validate({ body: createTicketSchema }), createTicket);
 // Customer: Get my tickets
 router.get("/me", validate({ query: getTicketsQuerySchema }), getMyTickets);
 
-// Staff (Agents & Admins): View ticket queue with filtering
+// Staff (Agents, Supervisors & Admins): View ticket queue with filtering
 router.get(
   "/staff",
-  restrictTo("agent", "admin"),
+  restrictTo("agent", "supervisor", "admin"),
   validate({ query: getTicketsQuerySchema }),
   getStaffTickets
 );

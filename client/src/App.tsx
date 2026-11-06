@@ -1,37 +1,67 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import { api } from "./services/api";
 import type {
   Product,
   Order,
   Ticket,
-  Message,
+  CartItem,
   TicketCategory,
   TicketPriority,
   UserRole,
 } from "./types";
+import { getThemeStyles } from "./utils/themeStyles";
+
+// Customer Panel Components
+import { CustomerNavbar, type CustomerViewType } from "./components/customer/CustomerNavbar";
+import { CustomerSidebar } from "./components/customer/CustomerSidebar";
+import { CategoryFilter, type SortOption } from "./components/customer/CategoryFilter";
+import { ProductCard } from "./components/customer/ProductCard";
+import { ProductDetailsModal } from "./components/customer/ProductDetailsModal";
+import { CartDrawer } from "./components/customer/CartDrawer";
+import { CustomerDashboard } from "./components/customer/CustomerDashboard";
+import { FloatingAiChat } from "./components/customer/FloatingAiChat";
+import { CustomerHomeView } from "./components/customer/CustomerHomeView";
+import { TrackOrderView } from "./components/customer/TrackOrderView";
+import { ReturnsRefundsView } from "./components/customer/ReturnsRefundsView";
+import { AiAssistantView } from "./components/customer/AiAssistantView";
+
+// Admin Panel Components
+import { AdminSidebar, type AdminTab } from "./components/admin/AdminSidebar";
+import { AdminDashboard } from "./components/admin/AdminDashboard";
+import { TicketQueueView } from "./components/admin/TicketQueueView";
+import { OrderRegistryView } from "./components/admin/OrderRegistryView";
+import { KnowledgeBaseView } from "./components/admin/KnowledgeBaseView";
+import { TelephonyVoiceView } from "./components/admin/TelephonyVoiceView";
+import { CrmInboxView } from "./components/admin/CrmInboxView";
+import { CrmCustomersView } from "./components/admin/CrmCustomersView";
+import { CrmAiConversationsView } from "./components/admin/CrmAiConversationsView";
+import { CrmReturnsRefundsView } from "./components/admin/CrmReturnsRefundsView";
+import { CrmAnalyticsView } from "./components/admin/CrmAnalyticsView";
+import { CrmSettingsView } from "./components/admin/CrmSettingsView";
+import { getProductEnhancement } from "./utils/productData";
+
 import {
-  Package,
   ShoppingBag,
-  Truck,
-  LogOut,
-  MessageCircle,
-  Plus,
-  Search,
-  Send,
-  ShieldCheck,
-  AlertTriangle,
-  Lock,
   ArrowRight,
+  AlertTriangle,
+  Sun,
+  Moon,
   Sparkles,
+  Plus,
+  Package,
+  Menu,
 } from "lucide-react";
-import "./App.css";
 
 /* =========================================================================
    1. AUTHENTICATION VIEW (LOGIN / REGISTER / QUICK DEMO LOGIN)
    ========================================================================= */
 const AuthView = () => {
   const { login, register, quickLogin } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const t = getThemeStyles(theme);
+
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -53,70 +83,141 @@ const AuthView = () => {
         await login(email, password);
       }
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Authentication failed");
-      }
+      setError(err instanceof Error ? err.message : "Authentication failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-2xl text-slate-100">
-        {/* Brand Header */}
+    <div className={`min-h-screen flex items-center justify-center p-4 transition-colors ${t.shell}`}>
+      {/* Top Right Theme Mode Toggle */}
+      <div className="absolute top-4 right-4 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={toggleTheme}
+          title={`Switch to ${theme === "dark" ? "Forest & Emerald" : "Premium Gold"}`}
+          className={`px-3 py-1.5 rounded-xl text-xs font-semibold border flex items-center gap-2 transition ${t.secondaryButton}`}
+        >
+          {theme === "dark" ? (
+            <Moon className="w-4 h-4 text-[#d9a83e]" />
+          ) : (
+            <Sun className="w-4 h-4 text-amber-500" />
+          )}
+          <span>{theme === "dark" ? "Premium Gold 🌙" : "Forest Light ☀️"}</span>
+        </button>
+      </div>
+
+      <div className={`w-full max-w-md p-8 rounded-3xl border shadow-2xl transition ${t.card}`}>
+        {/* Brand */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-xl mb-3">
-            <ShoppingBag className="w-6 h-6" />
+          <div
+            className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center mb-3 font-bold shadow-md ${t.sidebarBrand}`}
+          >
+            <ShoppingBag className="w-7 h-7" />
           </div>
-          <h1 className="text-2xl font-bold">ShopEase AI Support</h1>
-          <p className="text-slate-400 text-sm mt-1">
-            Sign in to explore customer, agent, and admin support workflows
+          <h1 className="text-2xl font-black tracking-tight">
+            ShopEase<span className={t.accentText}>.ai</span>
+          </h1>
+          <p className="text-xs opacity-75 mt-1">
+            Omnichannel E-Commerce Store & Grounded AI Customer Support
           </p>
         </div>
 
-        {/* Quick Demo Personas */}
-        <div className="mb-6 p-4 bg-slate-900/60 border border-slate-700/60 rounded-xl">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 text-center">
-            ⚡ Quick Demo Logins (Click to Sign In)
-          </p>
-          <div className="grid grid-cols-2 gap-2 text-xs">
+        {/* 1-Click Persona Quick Logins */}
+        <div className={`mb-6 p-3.5 rounded-2xl border space-y-2.5 ${t.cardMuted} ${t.divider}`}>
+          <div className="text-[10px] font-bold uppercase tracking-wider opacity-75 flex items-center justify-between">
+            <span>Instant One-Click Demo Personas</span>
+            <span className={`font-mono text-[9px] ${t.accentText}`}>Default Pass: Password123!</span>
+          </div>
+
+          <div className="space-y-2 text-xs">
+            {/* Row 1: Admin & Supervisor */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => quickLogin("admin")}
+                className={`p-2.5 rounded-xl border text-left transition hover:scale-[1.02] flex flex-col justify-between border-amber-500/30 ${t.secondaryButton}`}
+              >
+                <div>
+                  <div className="font-bold flex items-center justify-between">
+                    <span>Vikram Mehta</span>
+                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-500 font-extrabold uppercase">Admin</span>
+                  </div>
+                  <div className="text-[10px] opacity-70 font-mono mt-0.5">admin@shopease.local</div>
+                </div>
+                <div className="text-[9px] opacity-60 mt-1">Full Root System Control</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => quickLogin("supervisor")}
+                className={`p-2.5 rounded-xl border text-left transition hover:scale-[1.02] flex flex-col justify-between border-purple-500/30 ${t.secondaryButton}`}
+              >
+                <div>
+                  <div className="font-bold flex items-center justify-between">
+                    <span>Aditi Verma</span>
+                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-400 font-extrabold uppercase">Supervisor</span>
+                  </div>
+                  <div className="text-[10px] opacity-70 font-mono mt-0.5">supervisor@shopease.local</div>
+                </div>
+                <div className="text-[9px] opacity-60 mt-1">Escalations, Refunds &amp; Analytics</div>
+              </button>
+            </div>
+
+            {/* Row 2: Agent */}
             <button
-              onClick={() => quickLogin("customer")}
-              className="p-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 rounded-lg text-emerald-300 font-medium transition text-left"
-            >
-              👤 <strong>Customer (Aman)</strong>
-              <div className="text-[10px] text-slate-400">Hinglish • 3 Orders</div>
-            </button>
-            <button
-              onClick={() => quickLogin("customer2")}
-              className="p-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-blue-300 font-medium transition text-left"
-            >
-              👤 <strong>Customer (Rohit)</strong>
-              <div className="text-[10px] text-slate-400">English • 1 Order</div>
-            </button>
-            <button
+              type="button"
               onClick={() => quickLogin("agent")}
-              className="p-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 rounded-lg text-purple-300 font-medium transition text-left"
+              className={`w-full p-2.5 rounded-xl border text-left transition hover:scale-[1.01] flex items-center justify-between border-emerald-500/30 ${t.secondaryButton}`}
             >
-              🎧 <strong>Support Agent</strong>
-              <div className="text-[10px] text-slate-400">Ticket Triage & Notes</div>
+              <div>
+                <div className="font-bold flex items-center gap-2">
+                  <span>Priya Sharma</span>
+                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-500 font-bold uppercase">Support Agent</span>
+                </div>
+                <div className="text-[10px] opacity-70 font-mono mt-0.5">agent@shopease.local</div>
+              </div>
+              <div className="text-[9px] opacity-60 text-right">CRM Inbox &amp; Customer 360</div>
             </button>
-            <button
-              onClick={() => quickLogin("admin")}
-              className="p-2 bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/30 rounded-lg text-amber-300 font-medium transition text-left"
-            >
-              🛡️ <strong>Admin Console</strong>
-              <div className="text-[10px] text-slate-400">System Oversight</div>
-            </button>
+
+            {/* Row 3: Customers */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => quickLogin("customer")}
+                className={`p-2.5 rounded-xl border text-left transition hover:scale-[1.02] flex flex-col justify-between ${t.secondaryButton}`}
+              >
+                <div>
+                  <div className="font-bold flex items-center justify-between">
+                    <span>Aman Gupta</span>
+                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-blue-500/15 text-blue-500 font-bold uppercase">Customer</span>
+                  </div>
+                  <div className="text-[10px] opacity-70 font-mono mt-0.5">customer@shopease.local</div>
+                </div>
+                <div className="text-[9px] opacity-50 mt-1">Storefront (English)</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => quickLogin("customer2")}
+                className={`p-2.5 rounded-xl border text-left transition hover:scale-[1.02] flex flex-col justify-between ${t.secondaryButton}`}
+              >
+                <div>
+                  <div className="font-bold flex items-center justify-between">
+                    <span>Rohit Kumar</span>
+                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-blue-500/15 text-blue-500 font-bold uppercase">Customer</span>
+                  </div>
+                  <div className="text-[10px] opacity-70 font-mono mt-0.5">customer2@shopease.local</div>
+                </div>
+                <div className="text-[9px] opacity-50 mt-1">Storefront (Hindi)</div>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Error Alert */}
         {error && (
-          <div className="mb-4 p-3 bg-rose-500/20 border border-rose-500/30 rounded-lg text-rose-300 text-xs flex items-center gap-2">
+          <div className="mb-4 p-3 bg-rose-500/20 border border-rose-500/30 rounded-xl text-rose-400 text-xs flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
@@ -126,74 +227,63 @@ const AuthView = () => {
         <form onSubmit={handleSubmit} className="space-y-3">
           {isRegister && (
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
-                Full Name
-              </label>
+              <label className="block text-xs font-semibold mb-1 opacity-80">Full Name</label>
               <input
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Aman Gupta"
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
+                className={`w-full rounded-xl px-3 py-2 text-xs focus:outline-none ${t.input}`}
               />
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
-              Email Address
-            </label>
+            <label className="block text-xs font-semibold mb-1 opacity-80">Email Address</label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="user@shopease.local"
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
+              placeholder="customer@shopease.local"
+              className={`w-full rounded-xl px-3 py-2 text-xs focus:outline-none ${t.input}`}
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
-              Password
-            </label>
+            <label className="block text-xs font-semibold mb-1 opacity-80">Password</label>
             <input
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="At least 8 characters"
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
+              className={`w-full rounded-xl px-3 py-2 text-xs focus:outline-none ${t.input}`}
             />
           </div>
 
           {isRegister && (
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
-                  Role
-                </label>
+                <label className="block text-xs font-semibold mb-1 opacity-80">Role</label>
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value as UserRole)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
+                  className={`w-full rounded-xl px-2 py-2 text-xs focus:outline-none ${t.input}`}
                 >
                   <option value="customer">Customer</option>
                   <option value="agent">Support Agent</option>
+                  <option value="supervisor">Supervisor</option>
                   <option value="admin">Admin</option>
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
-                  Language
-                </label>
+                <label className="block text-xs font-semibold mb-1 opacity-80">Language</label>
                 <select
                   value={language}
-                  onChange={(e) =>
-                    setLanguage(e.target.value as "en" | "hi" | "hinglish")
-                  }
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-emerald-500 text-slate-100"
+                  onChange={(e) => setLanguage(e.target.value as "en" | "hi" | "hinglish")}
+                  className={`w-full rounded-xl px-2 py-2 text-xs focus:outline-none ${t.input}`}
                 >
                   <option value="en">English</option>
                   <option value="hinglish">Hinglish</option>
@@ -206,9 +296,9 @@ const AuthView = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-4 bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2 rounded-lg text-sm transition flex items-center justify-center gap-2"
+            className={`w-full mt-4 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 ${t.primaryButton}`}
           >
-            {loading ? "Processing..." : isRegister ? "Create Account" : "Sign In"}
+            {loading ? "Authenticating..." : isRegister ? "Create Account" : "Sign In to ShopEase"}
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
@@ -220,7 +310,7 @@ const AuthView = () => {
               setIsRegister(!isRegister);
               setError(null);
             }}
-            className="text-xs text-emerald-400 hover:underline"
+            className={`text-xs hover:underline ${t.accentText}`}
           >
             {isRegister
               ? "Already have an account? Sign in"
@@ -233,54 +323,85 @@ const AuthView = () => {
 };
 
 /* =========================================================================
-   2. MAIN APPLICATION WORKSPACE
+   2. MAIN APPLICATION (DUAL-PANEL SYSTEM: CUSTOMER & ADMIN)
    ========================================================================= */
-const MainApp = () => {
-  const { user, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState<
-    "tickets" | "orders" | "products" | "admin"
-  >("tickets");
+const MainWorkspace = () => {
+  const { user } = useAuth();
+  const { theme } = useTheme();
+  const t = getThemeStyles(theme);
 
-  // Products State
+  const isStaff = user?.role === "agent" || user?.role === "supervisor" || user?.role === "admin";
+
+  // Current Panel Mode: "customer" or "admin" (strictly locked to "customer" for customers)
+  const [panelMode, setPanelMode] = useState<"customer" | "admin">(
+    isStaff ? "admin" : "customer"
+  );
+
+  // Enforce customer access barrier
+  useEffect(() => {
+    if (!isStaff && panelMode === "admin") {
+      setPanelMode("customer");
+    }
+  }, [user?.role, isStaff, panelMode]);
+
+  // Customer Panel State
+  const [customerView, setCustomerView] = useState<CustomerViewType>("home");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [sortBy, setSortBy] = useState<SortOption>("featured");
+  const [inStockOnly, setInStockOnly] = useState(false);
+  const [priceRange, setPriceRange] = useState("all");
+  const [minRating, setMinRating] = useState(0);
+  const [minDiscount, setMinDiscount] = useState(0);
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    try {
+      const saved = localStorage.getItem("shopease_cart");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isAiChatOpen, setIsAiChatOpen] = useState(false);
+  const [aiChatQuery, setAiChatQuery] = useState<string | undefined>(undefined);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isMobileCustomerSidebarOpen, setIsMobileCustomerSidebarOpen] = useState(false);
+
+  // Admin Panel State
+  const [adminTab, setAdminTab] = useState<AdminTab>("dashboard");
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  // Core Data
   const [products, setProducts] = useState<Product[]>([]);
   const [productsLoading, setProductsLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-
-  // Orders State
   const [orders, setOrders] = useState<Order[]>([]);
-  const [ordersLoading, setOrdersLoading] = useState(false);
-
-  // Tickets State
+  const [, setOrdersLoading] = useState(false);
   const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [ticketsLoading, setTicketsLoading] = useState(false);
+  const [, setTicketsLoading] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [messagesLoading, setMessagesLoading] = useState(false);
-  const [messageInput, setMessageInput] = useState("");
-  const [messageVisibility, setMessageVisibility] = useState<
-    "customer" | "internal_note"
-  >("customer");
 
-  const [aiDraftLoading, setAiDraftLoading] = useState(false);
-  const [aiAsking, setAiAsking] = useState(false);
-
-  // New Ticket Modal State
+  // Raise Ticket Modal State
   const [showNewTicketModal, setShowNewTicketModal] = useState(false);
   const [newSubject, setNewSubject] = useState("");
   const [newCategory, setNewCategory] = useState<TicketCategory>("order_issue");
   const [newPriority, setNewPriority] = useState<TicketPriority>("medium");
   const [newOrderId, setNewOrderId] = useState("");
-  const [newInitialMessage, setNewInitialMessage] = useState("");
+  const [newInitialMsg, setNewInitialMsg] = useState("");
   const [ticketSubmitting, setTicketSubmitting] = useState(false);
+
+  // Sync Cart to localStorage
+  useEffect(() => {
+    localStorage.setItem("shopease_cart", JSON.stringify(cart));
+  }, [cart]);
 
   // Load Products
   const loadProducts = async () => {
     setProductsLoading(true);
     try {
-      const res = await api.products.list({ search: searchQuery });
+      const res = await api.products.list();
       setProducts(res.data.products);
     } catch (err) {
-      console.error("Failed to load products:", err);
+      console.error("Failed to load products", err);
     } finally {
       setProductsLoading(false);
     }
@@ -290,15 +411,15 @@ const MainApp = () => {
   const loadOrders = async () => {
     setOrdersLoading(true);
     try {
-      if (user?.role === "customer") {
-        const res = await api.orders.getMyOrders();
+      if (isStaff && panelMode === "admin") {
+        const res = await api.orders.getAllOrders();
         setOrders(res.data.orders);
       } else {
-        const res = await api.orders.getAllOrders();
+        const res = await api.orders.getMyOrders();
         setOrders(res.data.orders);
       }
     } catch (err) {
-      console.error("Failed to load orders:", err);
+      console.error("Failed to load orders", err);
     } finally {
       setOrdersLoading(false);
     }
@@ -308,110 +429,64 @@ const MainApp = () => {
   const loadTickets = async () => {
     setTicketsLoading(true);
     try {
-      if (user?.role === "customer") {
-        const res = await api.tickets.getMyTickets();
+      if (isStaff && panelMode === "admin") {
+        const res = await api.tickets.getStaffTickets();
         setTickets(res.data.tickets);
       } else {
-        const res = await api.tickets.getStaffTickets();
+        const res = await api.tickets.getMyTickets();
         setTickets(res.data.tickets);
       }
     } catch (err) {
-      console.error("Failed to load tickets:", err);
+      console.error("Failed to load tickets", err);
     } finally {
       setTicketsLoading(false);
     }
   };
 
-  // Load Messages for active ticket
-  const loadMessages = async (ticketId: string) => {
-    setMessagesLoading(true);
-    try {
-      const res = await api.tickets.getMessages(ticketId);
-      setMessages(res.messages);
-    } catch (err) {
-      console.error("Failed to load messages:", err);
-    } finally {
-      setMessagesLoading(false);
-    }
-  };
-
-  // Initial Fetch based on active tab
   useEffect(() => {
-    if (activeTab === "products") loadProducts();
-    if (activeTab === "orders") loadOrders();
-    if (activeTab === "tickets") loadTickets();
-  }, [activeTab]);
+    loadProducts();
+    loadOrders();
+    loadTickets();
+  }, [panelMode]);
 
-  useEffect(() => {
-    if (selectedTicket) {
-      loadMessages(selectedTicket._id);
-    }
-  }, [selectedTicket]);
-
-  // Handle Send Message
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedTicket || !messageInput.trim()) return;
-
-    try {
-      await api.tickets.sendMessage(selectedTicket._id, {
-        body: messageInput.trim(),
-        visibility: user?.role === "customer" ? "customer" : messageVisibility,
-      });
-      setMessageInput("");
-      await loadMessages(selectedTicket._id);
-      await loadTickets();
-    } catch (err) {
-      console.error("Failed to send message:", err);
-    }
+  // Cart Handlers
+  const handleAddToCart = (product: Product, quantity = 1) => {
+    setCart((prev) => {
+      const existing = prev.find((item) => item.product._id === product._id);
+      if (existing) {
+        return prev.map((item) =>
+          item.product._id === product._id
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        );
+      }
+      return [...prev, { product, quantity }];
+    });
   };
 
-  // Handle Ask AI (Customer)
-  const handleAskAi = async () => {
-    if (!selectedTicket || !messageInput.trim()) return;
-    setAiAsking(true);
-    try {
-      await api.ai.ask({
-        message: messageInput.trim(),
-        ticketId: selectedTicket._id,
-      });
-      setMessageInput("");
-      await loadMessages(selectedTicket._id);
-      await loadTickets();
-    } catch (err) {
-      console.error("AI Assistant request failed:", err);
-    } finally {
-      setAiAsking(false);
+  const handleUpdateCartQuantity = (productId: string, quantity: number) => {
+    if (quantity <= 0) {
+      handleRemoveCartItem(productId);
+      return;
     }
+    setCart((prev) =>
+      prev.map((item) =>
+        item.product._id === productId ? { ...item, quantity } : item
+      )
+    );
   };
 
-  // Handle Generate AI Draft (Staff Copilot)
-  const handleGenerateAiDraft = async () => {
-    if (!selectedTicket) return;
-    setAiDraftLoading(true);
-    try {
-      const res = await api.ai.generateDraft(selectedTicket._id);
-      setMessageInput(res.draftReply);
-    } catch (err) {
-      console.error("Failed to generate AI draft:", err);
-    } finally {
-      setAiDraftLoading(false);
-    }
+  const handleRemoveCartItem = (productId: string) => {
+    setCart((prev) => prev.filter((item) => item.product._id !== productId));
   };
 
-  // Handle Ticket Status Update (Staff or Customer Closing)
-  const handleStatusChange = async (newStatus: Ticket["status"]) => {
-    if (!selectedTicket) return;
-    try {
-      await api.tickets.update(selectedTicket._id, { status: newStatus });
-      setSelectedTicket((prev) => (prev ? { ...prev, status: newStatus } : null));
-      await loadTickets();
-    } catch (err) {
-      console.error("Failed to update status:", err);
-    }
+  const handleClearCart = () => setCart([]);
+
+  const handleOpenAiWithContext = (prompt: string) => {
+    setAiChatQuery(prompt);
+    setIsAiChatOpen(true);
   };
 
-  // Handle Create Ticket
   const handleCreateTicket = async (e: React.FormEvent) => {
     e.preventDefault();
     setTicketSubmitting(true);
@@ -420,679 +495,622 @@ const MainApp = () => {
         subject: newSubject,
         category: newCategory,
         priority: newPriority,
-        orderId: newOrderId.trim() || undefined,
-        initialMessage: newInitialMessage.trim() || undefined,
+        orderId: newOrderId || undefined,
+        initialMessage: newInitialMsg || undefined,
       });
+
       setShowNewTicketModal(false);
       setNewSubject("");
       setNewOrderId("");
-      setNewInitialMessage("");
-      await loadTickets();
-      setSelectedTicket(res.ticket);
-    } catch (err) {
+      setNewInitialMsg("");
+      loadTickets();
+
+      // Open AI chat or show confirmation
+      handleOpenAiWithContext(
+        `I just created ticket ${res.ticket.ticketNumber} regarding: "${res.ticket.subject}". Can you help resolve this?`
+      );
+    } catch (err: unknown) {
       alert(err instanceof Error ? err.message : "Failed to create ticket");
     } finally {
       setTicketSubmitting(false);
     }
   };
 
-  const isStaff = user?.role === "agent" || user?.role === "admin";
+  // Filter Products for Customer View
+  const categoriesList = Array.from(
+    new Set(products.map((p) => p.category).filter(Boolean))
+  );
+
+  const handleResetCustomerFilters = () => {
+    setSelectedCategory("all");
+    setSearchQuery("");
+    setPriceRange("all");
+    setMinRating(0);
+    setMinDiscount(0);
+    setInStockOnly(false);
+    setSortBy("featured");
+  };
+
+  const filteredProducts = products
+    .filter((p) => {
+      const matchesCategory =
+        selectedCategory === "all" ||
+        p.category.toLowerCase().includes(selectedCategory.toLowerCase()) ||
+        selectedCategory.toLowerCase().includes(p.category.toLowerCase());
+      const matchesSearch =
+        searchQuery.trim() === "" ||
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.sku.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStock = inStockOnly ? p.stock > 0 : true;
+
+      let matchesPrice = true;
+      if (priceRange === "under_2000") matchesPrice = p.price < 2000;
+      else if (priceRange === "2000_5000") matchesPrice = p.price >= 2000 && p.price <= 5000;
+      else if (priceRange === "5000_10000") matchesPrice = p.price > 5000 && p.price <= 10000;
+      else if (priceRange === "above_10000") matchesPrice = p.price > 10000;
+
+      const matchesRating = minRating > 0 ? (p.rating || 4.5) >= minRating : true;
+
+      let matchesDiscount = true;
+      if (minDiscount > 0) {
+        const enh = getProductEnhancement(p.sku);
+        const orig = p.originalPrice || enh.originalPrice;
+        const disc = orig ? Math.round(((orig - p.price) / orig) * 100) : 0;
+        matchesDiscount = disc >= minDiscount;
+      }
+
+      return matchesCategory && matchesSearch && matchesStock && matchesPrice && matchesRating && matchesDiscount;
+    })
+    .sort((a, b) => {
+      if (sortBy === "price_asc") return a.price - b.price;
+      if (sortBy === "price_desc") return b.price - a.price;
+      if (sortBy === "rating_desc") return (b.rating || 0) - (a.rating || 0);
+      if (sortBy === "discount_desc") {
+        const discA = ((getProductEnhancement(a.sku).originalPrice - a.price) / getProductEnhancement(a.sku).originalPrice) * 100;
+        const discB = ((getProductEnhancement(b.sku).originalPrice - b.price) / getProductEnhancement(b.sku).originalPrice) * 100;
+        return discB - discA;
+      }
+      return 0;
+    });
 
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 font-sans overflow-hidden">
-      {/* Sidebar Navigation */}
-      <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0">
-        <div>
-          {/* Brand */}
-          <div className="p-4 border-b border-slate-800 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
-              <ShoppingBag className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="font-bold text-sm tracking-wide">ShopEase</div>
-              <div className="text-[10px] text-slate-400">Support Platform</div>
-            </div>
-          </div>
+    <div className={`min-h-screen flex flex-col transition-colors ${t.shell}`}>
+      {/* ===================================================================
+          PANEL A: CUSTOMER STOREFRONT PANEL
+          =================================================================== */}
+      {panelMode === "customer" && (
+        <div className="flex h-screen overflow-hidden">
+          {/* Customer Sidebar Navigation */}
+          <CustomerSidebar
+            activeView={customerView}
+            setActiveView={setCustomerView}
+            cartCount={cart.reduce((sum, i) => sum + i.quantity, 0)}
+            orderCount={orders.length}
+            onOpenAiChat={() => setIsAiChatOpen(true)}
+            onSwitchToStaffPanel={
+              isStaff ? () => setPanelMode("admin") : undefined
+            }
+            isOpenMobile={isMobileCustomerSidebarOpen}
+            onCloseMobile={() => setIsMobileCustomerSidebarOpen(false)}
+          />
 
-          {/* Navigation Links */}
-          <nav className="p-3 space-y-1">
-            <button
-              onClick={() => setActiveTab("tickets")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition ${
-                activeTab === "tickets"
-                  ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/30"
-                  : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
-              }`}
-            >
-              <MessageCircle className="w-4 h-4" />
-              <span>{isStaff ? "Support Ticket Queue" : "My Support Tickets"}</span>
-            </button>
+          {/* Customer Main Area */}
+          <div className="flex-1 flex flex-col h-full overflow-hidden">
+            {/* Customer Top Navbar */}
+            <CustomerNavbar
+              cartCount={cart.reduce((sum, i) => sum + i.quantity, 0)}
+              onOpenCart={() => setIsCartOpen(true)}
+              activeView={customerView}
+              setActiveView={setCustomerView}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              selectedCategory={selectedCategory}
+              onSelectCategory={setSelectedCategory}
+              categories={categoriesList}
+              onOpenAiChat={() => setIsAiChatOpen(true)}
+              onOpenMobileSidebar={() => setIsMobileCustomerSidebarOpen(true)}
+              onSwitchToStaffPanel={
+                isStaff ? () => setPanelMode("admin") : undefined
+              }
+            />
 
-            <button
-              onClick={() => setActiveTab("orders")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition ${
-                activeTab === "orders"
-                  ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/30"
-                  : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
-              }`}
-            >
-              <Truck className="w-4 h-4" />
-              <span>{isStaff ? "All Platform Orders" : "My Orders"}</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab("products")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition ${
-                activeTab === "products"
-                  ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/30"
-                  : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
-              }`}
-            >
-              <Package className="w-4 h-4" />
-              <span>Product Catalogue</span>
-            </button>
-
-            {user?.role === "admin" && (
-              <button
-                onClick={() => setActiveTab("admin")}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition ${
-                  activeTab === "admin"
-                    ? "bg-amber-600 text-white shadow-lg shadow-amber-600/30"
-                    : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
-                }`}
-              >
-                <ShieldCheck className="w-4 h-4" />
-                <span>Admin Governance</span>
-              </button>
+            {/* Main Customer Content Scroll Container */}
+            <main className="flex-1 overflow-y-auto w-full">
+            {customerView === "home" && (
+              <CustomerHomeView
+                orders={orders}
+                products={products}
+                onNavigateToView={(view) => setCustomerView(view)}
+                onOpenProductDetails={(prod) => setSelectedProduct(prod)}
+                onAddToCart={(prod) => handleAddToCart(prod, 1)}
+                onAskAi={(q) => handleOpenAiWithContext(q)}
+                cartProductIds={cart.map((c) => c.product._id)}
+                onSelectCategory={setSelectedCategory}
+              />
             )}
-          </nav>
-        </div>
 
-        {/* User Card & Logout */}
-        <div className="p-3 border-t border-slate-800">
-          <div className="p-3 bg-slate-800/70 rounded-xl mb-2 flex items-center justify-between">
-            <div className="overflow-hidden">
-              <div className="text-xs font-semibold truncate">{user?.name}</div>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <span
-                  className={`text-[9px] px-1.5 py-0.5 rounded font-medium uppercase tracking-wider ${
-                    user?.role === "admin"
-                      ? "bg-amber-500/20 text-amber-300"
-                      : user?.role === "agent"
-                      ? "bg-purple-500/20 text-purple-300"
-                      : "bg-emerald-500/20 text-emerald-300"
-                  }`}
-                >
-                  {user?.role}
-                </span>
-                <span className="text-[10px] text-slate-400">
-                  {user?.preferredLanguage}
-                </span>
-              </div>
-            </div>
-            <button
-              onClick={logout}
-              title="Sign Out"
-              className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-700/50 rounded-lg transition"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Header */}
-        <header className="h-14 border-b border-slate-800 px-6 flex items-center justify-between shrink-0 bg-slate-900/50">
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-200">
-            {activeTab === "tickets" && (
-              <>
-                <MessageCircle className="w-4 h-4 text-emerald-400" />
-                <span>
-                  {isStaff ? "Support Operations / Ticket Queue" : "Customer Support Portal"}
-                </span>
-              </>
-            )}
-            {activeTab === "orders" && (
-              <>
-                <Truck className="w-4 h-4 text-emerald-400" />
-                <span>Order Lookup & Fulfillment</span>
-              </>
-            )}
-            {activeTab === "products" && (
-              <>
-                <Package className="w-4 h-4 text-emerald-400" />
-                <span>Product Store Catalogue</span>
-              </>
-            )}
-            {activeTab === "admin" && (
-              <>
-                <ShieldCheck className="w-4 h-4 text-amber-400" />
-                <span>System Administration & Audit Logs</span>
-              </>
-            )}
-          </div>
-
-          {activeTab === "tickets" && !isStaff && (
-            <button
-              onClick={() => setShowNewTicketModal(true)}
-              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition shadow-md shadow-emerald-600/20"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Raise Support Ticket</span>
-            </button>
-          )}
-        </header>
-
-        {/* Dynamic View Body */}
-        <div className="flex-1 overflow-hidden flex">
-          {/* TAB 1: TICKETS VIEW */}
-          {activeTab === "tickets" && (
-            <div className="flex-1 flex overflow-hidden">
-              {/* Ticket List Pane */}
-              <div className="w-80 border-r border-slate-800 flex flex-col bg-slate-900/30 shrink-0">
-                <div className="p-3 border-b border-slate-800 flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                    {tickets.length} Tickets
-                  </span>
-                  <button
-                    onClick={loadTickets}
-                    className="text-[10px] text-emerald-400 hover:underline"
-                  >
-                    Refresh
-                  </button>
-                </div>
-
-                <div className="flex-1 overflow-y-auto divide-y divide-slate-800/60">
-                  {ticketsLoading ? (
-                    <div className="p-6 text-center text-xs text-slate-500">
-                      Loading tickets...
+            {customerView === "products" && (
+              <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div id="products-grid" className="pt-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+                    <div>
+                      <h2 className="text-xl sm:text-2xl font-black tracking-tight">
+                        Featured Products & Catalogue
+                      </h2>
+                      <p className="text-xs opacity-65">
+                        High-performance smart gadgets, active noise-cancelling audio & fast accessories.
+                      </p>
                     </div>
-                  ) : tickets.length === 0 ? (
-                    <div className="p-6 text-center text-xs text-slate-500">
-                      No tickets found.
+                    <span className="text-xs font-semibold px-3 py-1 rounded-full opacity-80 border w-fit">
+                      {filteredProducts.length} Products Available
+                    </span>
+                  </div>
+
+                  <CategoryFilter
+                    categories={categoriesList}
+                    selectedCategory={selectedCategory}
+                    onSelectCategory={setSelectedCategory}
+                    sortBy={sortBy}
+                    onSortChange={setSortBy}
+                    inStockOnly={inStockOnly}
+                    onToggleInStock={setInStockOnly}
+                    priceRange={priceRange}
+                    onSelectPriceRange={setPriceRange}
+                    minRating={minRating}
+                    onSelectMinRating={setMinRating}
+                    minDiscount={minDiscount}
+                    onSelectMinDiscount={setMinDiscount}
+                    onResetFilters={handleResetCustomerFilters}
+                  />
+
+                  {/* Products Grid */}
+                  {productsLoading ? (
+                    <div className="py-20 text-center text-xs opacity-60">
+                      Loading store products...
+                    </div>
+                  ) : filteredProducts.length === 0 ? (
+                    <div className={`py-16 text-center rounded-3xl border space-y-3 ${t.cardMuted} ${t.divider}`}>
+                      <Package className="w-10 h-10 mx-auto opacity-30" />
+                      <div className="text-sm font-bold">No products match your active filters.</div>
+                      <p className="text-xs opacity-70">Try loosening your price, discount, or rating criteria.</p>
+                      <button
+                        type="button"
+                        onClick={handleResetCustomerFilters}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition ${t.primaryButton}`}
+                      >
+                        Reset All Filters
+                      </button>
                     </div>
                   ) : (
-                    tickets.map((t) => {
-                      const isSelected = selectedTicket?._id === t._id;
-                      return (
-                        <button
-                          key={t._id}
-                          onClick={() => setSelectedTicket(t)}
-                          className={`w-full text-left p-3 transition flex flex-col gap-1.5 ${
-                            isSelected
-                              ? "bg-slate-800/90 border-l-2 border-emerald-500"
-                              : "hover:bg-slate-850/50"
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-mono text-emerald-400">
-                              {t.ticketNumber}
-                            </span>
-                            <span
-                              className={`text-[9px] px-1.5 py-0.5 rounded font-medium ${
-                                t.status === "open"
-                                  ? "bg-amber-500/20 text-amber-300"
-                                  : t.status === "in_progress"
-                                  ? "bg-blue-500/20 text-blue-300"
-                                  : "bg-slate-700 text-slate-300"
-                              }`}
-                            >
-                              {t.status.replace("_", " ")}
-                            </span>
-                          </div>
-                          <div className="text-xs font-medium text-slate-200 line-clamp-1">
-                            {t.subject}
-                          </div>
-                          {isStaff && t.customerId && (
-                            <div className="text-[10px] text-slate-400">
-                              Customer: {t.customerId.name} ({t.customerId.preferredLanguage || "en"})
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
+                      {filteredProducts.map((prod) => (
+                        <ProductCard
+                          key={prod._id}
+                          product={prod}
+                          onAddToCart={(p) => handleAddToCart(p, 1)}
+                          onOpenDetails={setSelectedProduct}
+                          onAskAiAboutProduct={(p) =>
+                            handleOpenAiWithContext(
+                              `Tell me about ${p.name} (SKU: ${p.sku}) - price ₹${p.price}, stock availability, warranty and returns policy.`
+                            )
+                          }
+                          isAdded={cart.some((c) => c.product._id === prod._id)}
+                        />
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>
+            )}
 
-              {/* Ticket Details & Timeline Pane */}
-              <div className="flex-1 flex flex-col bg-slate-950 overflow-hidden">
-                {selectedTicket ? (
-                  <>
-                    {/* Ticket Header Bar */}
-                    <div className="p-4 border-b border-slate-800 bg-slate-900/40 flex items-center justify-between shrink-0">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono text-emerald-400 font-bold">
-                            {selectedTicket.ticketNumber}
-                          </span>
-                          <h2 className="text-sm font-semibold text-slate-100">
-                            {selectedTicket.subject}
-                          </h2>
-                        </div>
-                        <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-400">
-                          <span>Category: {selectedTicket.category.replace("_", " ")}</span>
-                          <span>•</span>
-                          <span>Priority: {selectedTicket.priority}</span>
-                          {selectedTicket.orderId && (
-                            <>
-                              <span>•</span>
-                              <span className="text-emerald-400">
-                                Order: {selectedTicket.orderId.orderNumber}
-                              </span>
-                            </>
-                          )}
-                        </div>
-                      </div>
+            {customerView === "dashboard" && (
+              <CustomerDashboard
+                initialTab="overview"
+                onOpenAiWithOrder={(orderNum) =>
+                  handleOpenAiWithContext(`Where is my order ${orderNum} right now?`)
+                }
+                onRaiseTicket={() => setShowNewTicketModal(true)}
+                onOpenTicketInChat={(tkt) =>
+                  handleOpenAiWithContext(
+                    `Give me a live status update on support ticket ${tkt.ticketNumber}: "${tkt.subject}".`
+                  )
+                }
+                onAskAiAboutPolicy={(query) => handleOpenAiWithContext(query)}
+                onNavigateToView={(view) => setCustomerView(view)}
+              />
+            )}
 
-                      {/* Ticket Action Controls */}
-                      <div className="flex items-center gap-2">
-                        {isStaff ? (
-                          <select
-                            value={selectedTicket.status}
-                            onChange={(e) =>
-                              handleStatusChange(e.target.value as Ticket["status"])
-                            }
-                            className="bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-200 focus:outline-none"
-                          >
-                            <option value="open">Open</option>
-                            <option value="in_progress">In Progress</option>
-                            <option value="waiting_customer">Waiting on Customer</option>
-                            <option value="resolved">Resolved</option>
-                            <option value="closed">Closed</option>
-                          </select>
-                        ) : selectedTicket.status !== "closed" ? (
-                          <button
-                            onClick={() => handleStatusChange("closed")}
-                            className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1 rounded-lg border border-slate-700 transition"
-                          >
-                            Close Ticket
-                          </button>
-                        ) : null}
-                      </div>
-                    </div>
+            {customerView === "orders" && (
+              <CustomerDashboard
+                initialTab="orders"
+                onOpenAiWithOrder={(orderNum) =>
+                  handleOpenAiWithContext(`Where is my order ${orderNum} right now?`)
+                }
+                onRaiseTicket={() => setShowNewTicketModal(true)}
+                onOpenTicketInChat={(tkt) =>
+                  handleOpenAiWithContext(
+                    `Give me a live status update on support ticket ${tkt.ticketNumber}: "${tkt.subject}".`
+                  )
+                }
+                onAskAiAboutPolicy={(query) => handleOpenAiWithContext(query)}
+                onNavigateToView={(view) => setCustomerView(view)}
+              />
+            )}
 
-                    {/* Messages Timeline */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                      {messagesLoading ? (
-                        <div className="text-center text-xs text-slate-500 py-6">
-                          Loading conversation...
-                        </div>
-                      ) : messages.length === 0 ? (
-                        <div className="text-center text-xs text-slate-500 py-6">
-                          No messages yet. Send a message below.
-                        </div>
-                      ) : (
-                        messages.map((m) => {
-                          const isCustomerMessage = m.senderRole === "customer";
-                          const isInternalNote = m.visibility === "internal_note";
+            {customerView === "track" && (
+              <TrackOrderView
+                orders={orders}
+                onAskAiAboutOrder={(orderNum) =>
+                  handleOpenAiWithContext(`Where is my order ${orderNum} right now?`)
+                }
+              />
+            )}
 
-                          return (
-                            <div
-                              key={m._id}
-                              className={`flex flex-col ${
-                                isInternalNote
-                                  ? "items-center"
-                                  : isCustomerMessage
-                                  ? "items-start"
-                                  : "items-end"
-                              }`}
-                            >
-                              <div
-                                className={`max-w-lg rounded-2xl p-3 text-xs shadow-md ${
-                                  isInternalNote
-                                    ? "bg-amber-950/40 border border-amber-600/40 text-amber-200 w-full"
-                                    : isCustomerMessage
-                                    ? "bg-slate-800 text-slate-200 rounded-tl-sm border border-slate-700/60"
-                                    : "bg-emerald-600 text-white rounded-tr-sm"
-                                }`}
-                              >
-                                {isInternalNote && (
-                                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-400 mb-1 uppercase tracking-wider">
-                                    <Lock className="w-3 h-3" />
-                                    <span>Confidential Internal Staff Note</span>
-                                  </div>
-                                )}
-                                <div className="text-[10px] opacity-70 mb-1">
-                                  {m.senderId?.name || m.senderRole} •{" "}
-                                  {new Date(m.createdAt).toLocaleTimeString([], {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  })}
-                                </div>
-                                <div className="whitespace-pre-wrap leading-relaxed">
-                                  {m.body}
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })
-                      )}
-                    </div>
+            {customerView === "assistant" && (
+              <AiAssistantView
+                orders={orders}
+                initialQuery={aiChatQuery}
+                onAddToCart={(prod) => handleAddToCart(prod, 1)}
+              />
+            )}
 
-                    {/* Message Composer */}
-                    <form
-                      onSubmit={handleSendMessage}
-                      className="p-3 border-t border-slate-800 bg-slate-900/60 shrink-0"
-                    >
-                      {isStaff ? (
-                        <div className="flex items-center justify-between mb-2 text-xs">
-                          <div className="flex items-center gap-4">
-                            <label className="flex items-center gap-1.5 cursor-pointer">
-                              <input
-                                type="radio"
-                                name="visibility"
-                                checked={messageVisibility === "customer"}
-                                onChange={() => setMessageVisibility("customer")}
-                                className="text-emerald-500 focus:ring-0"
-                              />
-                              <span className="text-slate-300">Reply to Customer (Public)</span>
-                            </label>
-                            <label className="flex items-center gap-1.5 cursor-pointer text-amber-300 font-medium">
-                              <input
-                                type="radio"
-                                name="visibility"
-                                checked={messageVisibility === "internal_note"}
-                                onChange={() => setMessageVisibility("internal_note")}
-                                className="text-amber-500 focus:ring-0"
-                              />
-                              <span className="flex items-center gap-1">
-                                <Lock className="w-3 h-3" /> Internal Staff Note (Private)
-                              </span>
-                            </label>
-                          </div>
+            {customerView === "returns" && (
+              <ReturnsRefundsView
+                orders={orders}
+                onOpenAiWithReturnQuery={(query) => handleOpenAiWithContext(query)}
+              />
+            )}
 
-                          <button
-                            type="button"
-                            onClick={handleGenerateAiDraft}
-                            disabled={aiDraftLoading}
-                            className="flex items-center gap-1 text-[11px] bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 px-2.5 py-1 rounded-lg transition"
-                          >
-                            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-                            <span>{aiDraftLoading ? "Drafting..." : "⚡ AI Copilot Draft"}</span>
-                          </button>
-                        </div>
-                      ) : null}
+            {customerView === "support" && (
+              <CustomerDashboard
+                initialTab="tickets"
+                onOpenAiWithOrder={(orderNum) =>
+                  handleOpenAiWithContext(`Where is my order ${orderNum} right now?`)
+                }
+                onRaiseTicket={() => setShowNewTicketModal(true)}
+                onOpenTicketInChat={(tkt) =>
+                  handleOpenAiWithContext(
+                    `Give me a live status update on support ticket ${tkt.ticketNumber}: "${tkt.subject}".`
+                  )
+                }
+                onAskAiAboutPolicy={(query) => handleOpenAiWithContext(query)}
+                onNavigateToView={(view) => setCustomerView(view)}
+              />
+            )}
 
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={messageInput}
-                          onChange={(e) => setMessageInput(e.target.value)}
-                          placeholder={
-                            isStaff && messageVisibility === "internal_note"
-                              ? "Write private staff diagnostic note..."
-                              : isStaff
-                              ? "Type reply to customer..."
-                              : "Ask ShopEase AI or send a message to staff..."
-                          }
-                          className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
-                        />
+            {customerView === "knowledge" && (
+              <CustomerDashboard
+                initialTab="knowledge"
+                onOpenAiWithOrder={(orderNum) =>
+                  handleOpenAiWithContext(`Where is my order ${orderNum} right now?`)
+                }
+                onRaiseTicket={() => setShowNewTicketModal(true)}
+                onOpenTicketInChat={(tkt) =>
+                  handleOpenAiWithContext(
+                    `Give me a live status update on support ticket ${tkt.ticketNumber}: "${tkt.subject}".`
+                  )
+                }
+                onAskAiAboutPolicy={(query) => handleOpenAiWithContext(query)}
+                onNavigateToView={(view) => setCustomerView(view)}
+              />
+            )}
 
-                        {!isStaff && (
-                          <button
-                            type="button"
-                            onClick={handleAskAi}
-                            disabled={aiAsking || !messageInput.trim()}
-                            className="flex items-center gap-1 bg-purple-600 hover:bg-purple-500 text-white text-xs px-3 py-2 rounded-xl transition shadow-md shadow-purple-600/20 disabled:opacity-50"
-                            title="Get instant grounded response from ShopEase AI"
-                          >
-                            <Sparkles className="w-3.5 h-3.5" />
-                            <span>{aiAsking ? "Thinking..." : "Ask AI"}</span>
-                          </button>
-                        )}
-
-                        <button
-                          type="submit"
-                          className="bg-emerald-600 hover:bg-emerald-500 text-white p-2 rounded-xl transition"
-                          title="Send message"
-                        >
-                          <Send className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </form>
-                  </>
-                ) : (
-                  <div className="flex-1 flex flex-col items-center justify-center text-slate-500 text-xs gap-2">
-                    <MessageCircle className="w-8 h-8 opacity-40" />
-                    <span>Select a ticket from the left queue to view the conversation</span>
+            {customerView === "profile" && (
+              <CustomerDashboard
+                initialTab="profile"
+                onOpenAiWithOrder={(orderNum) =>
+                  handleOpenAiWithContext(`Where is my order ${orderNum} right now?`)
+                }
+                onRaiseTicket={() => setShowNewTicketModal(true)}
+                onOpenTicketInChat={(tkt) =>
+                  handleOpenAiWithContext(
+                    `Give me a live status update on support ticket ${tkt.ticketNumber}: "${tkt.subject}".`
+                  )
+                }
+                onAskAiAboutPolicy={(query) => handleOpenAiWithContext(query)}
+                onNavigateToView={(view) => setCustomerView(view)}
+              />
+            )}
+              {/* Footer inside scrollable customer main */}
+              <footer className={`border-t py-8 px-4 sm:px-6 lg:px-8 text-xs transition mt-12 ${t.divider} ${t.cardMuted}`}>
+                <div className="w-full max-w-[1600px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-2">
+                    <ShoppingBag className={`w-4 h-4 ${t.accentText}`} />
+                    <span className="font-extrabold text-sm">ShopEase.ai</span>
+                    <span className="opacity-40">•</span>
+                    <span className="opacity-70">Omnichannel Support & Real-Time E-Commerce Platform</span>
                   </div>
-                )}
-              </div>
-            </div>
-          )}
 
-          {/* TAB 2: ORDERS VIEW */}
-          {activeTab === "orders" && (
-            <div className="flex-1 p-6 overflow-y-auto">
-              <div className="max-w-4xl mx-auto">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-base font-semibold">
-                    {isStaff ? "Platform Order Registry" : "Your Order History"}
-                  </h2>
-                  <span className="text-xs text-slate-400">
-                    {orders.length} Orders Loaded
+                  <div className="flex items-center gap-4 opacity-75">
+                    <button
+                      onClick={() =>
+                        handleOpenAiWithContext("What is your 7-day electronics return policy?")
+                      }
+                      className="hover:underline"
+                    >
+                      Return Policy
+                    </button>
+                    <button
+                      onClick={() =>
+                        handleOpenAiWithContext("What are your express shipping delivery timelines?")
+                      }
+                      className="hover:underline"
+                    >
+                      Shipping Info
+                    </button>
+                    <button
+                      onClick={() => setIsAiChatOpen(true)}
+                      className={`font-bold hover:underline ${t.accentText}`}
+                    >
+                      AI Help Center
+                    </button>
+                  </div>
+                </div>
+              </footer>
+            </main>
+
+            {/* Product Details Modal with AI Contextual Q&A */}
+            <ProductDetailsModal
+              product={selectedProduct}
+              onClose={() => setSelectedProduct(null)}
+              onAddToCart={handleAddToCart}
+              onBuyNow={(prod, qty) => {
+                handleAddToCart(prod, qty);
+                setIsCartOpen(true);
+              }}
+              onAskAi={handleOpenAiWithContext}
+            />
+
+            {/* Cart Drawer */}
+            <CartDrawer
+              isOpen={isCartOpen}
+              onClose={() => setIsCartOpen(false)}
+              cart={cart}
+              onUpdateQuantity={handleUpdateCartQuantity}
+              onRemoveItem={handleRemoveCartItem}
+              onClearCart={handleClearCart}
+              onOrderCreated={() => {
+                loadOrders();
+                loadProducts();
+              }}
+              onOpenAiChatWithOrder={(orderNum) =>
+                handleOpenAiWithContext(`Where is my new order ${orderNum} right now?`)
+              }
+            />
+
+            {/* Floating AI Chat Assistant */}
+            <FloatingAiChat
+              isOpen={isAiChatOpen}
+              onToggle={() => setIsAiChatOpen(!isAiChatOpen)}
+              initialQuery={aiChatQuery}
+              onAddToCart={(prod) => handleAddToCart(prod, 1)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* ===================================================================
+          PANEL B: ADMIN & SUPPORT OPERATIONS PANEL
+          =================================================================== */}
+      {panelMode === "admin" && (
+        <div className="flex h-screen overflow-hidden">
+          {/* Admin Sidebar Navigation */}
+          <AdminSidebar
+            activeTab={adminTab}
+            setActiveTab={setAdminTab}
+            ticketCount={tickets.filter((t) => t.status === "open").length}
+            orderCount={orders.length}
+            onSwitchToCustomerStore={() => setPanelMode("customer")}
+            isOpenMobile={isMobileSidebarOpen}
+            onCloseMobile={() => setIsMobileSidebarOpen(false)}
+          />
+
+          {/* Admin Workspace Content View */}
+          <main className="flex-1 flex flex-col overflow-hidden">
+            {/* Admin Header */}
+            <header className={`h-14 border-b px-4 sm:px-6 flex items-center justify-between shrink-0 ${t.card} ${t.divider}`}>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsMobileSidebarOpen(true)}
+                  className="md:hidden p-1.5 rounded-xl border opacity-80 hover:opacity-100"
+                  title="Open Navigation Menu"
+                >
+                  <Menu className="w-4 h-4" />
+                </button>
+
+                <div className="flex items-center gap-2 text-xs sm:text-sm font-bold truncate">
+                  <span className="capitalize">{adminTab} Hub</span>
+                  <span className="opacity-40 hidden sm:inline">•</span>
+                  <span className="text-xs font-normal opacity-70 hidden sm:inline">
+                    Role: <strong className="uppercase">{user?.role}</strong> ({user?.name})
                   </span>
                 </div>
+              </div>
 
-                {ordersLoading ? (
-                  <div className="p-8 text-center text-xs text-slate-500">
-                    Loading orders...
-                  </div>
-                ) : orders.length === 0 ? (
-                  <div className="p-8 text-center text-xs text-slate-500">
-                    No orders found.
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {orders.map((o) => (
-                      <div
-                        key={o._id}
-                        className="p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-700 transition"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono font-bold text-xs text-emerald-400">
-                              {o.orderNumber}
-                            </span>
-                            <span className="text-xs text-slate-400">•</span>
-                            <span className="text-xs text-slate-300">
-                              ₹{o.totalAmount.toLocaleString()}
-                            </span>
-                          </div>
-                          <span
-                            className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                              o.status === "delivered"
-                                ? "bg-emerald-500/20 text-emerald-300"
-                                : o.status === "shipped"
-                                ? "bg-blue-500/20 text-blue-300"
-                                : "bg-amber-500/20 text-amber-300"
-                            }`}
-                          >
-                            {o.status.toUpperCase()}
-                          </span>
-                        </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPanelMode("customer")}
+                  className={`text-[11px] sm:text-xs px-2.5 sm:px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5 border transition ${
+                    t.isDark
+                      ? "bg-[#382f1c] text-[#f5e7bf] border-[#d9a83e]/50 hover:bg-[#4a3f25]"
+                      : "bg-[#e6f4ea] text-[#059669] border-[#a7f3d0] hover:bg-[#d6ecd9]"
+                  }`}
+                >
+                  <ShoppingBag className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">View Customer Storefront</span>
+                  <span className="sm:hidden">Store</span>
+                </button>
+              </div>
+            </header>
 
-                        <div className="text-xs text-slate-400 space-y-1 mb-2">
-                          <div>
-                            Items:{" "}
-                            {o.items.map((i) => `${i.name} (x${i.quantity})`).join(", ")}
-                          </div>
-                          {o.carrier && (
-                            <div>
-                              Carrier: {o.carrier} • Tracking: {o.trackingNumber}
+            {/* Dynamic Admin Body View */}
+            <div className="flex-1 overflow-hidden">
+              {adminTab === "dashboard" && (
+                <AdminDashboard
+                  orders={orders}
+                  tickets={tickets}
+                  products={products}
+                  onNavigateToTab={setAdminTab}
+                />
+              )}
+
+              {adminTab === "inbox" && (
+                <CrmInboxView
+                  tickets={tickets}
+                  orders={orders}
+                  onRefreshTickets={loadTickets}
+                />
+              )}
+
+              {adminTab === "tickets" && (
+                <TicketQueueView
+                  tickets={tickets}
+                  onRefreshTickets={loadTickets}
+                  selectedTicket={selectedTicket}
+                  onSelectTicket={setSelectedTicket}
+                />
+              )}
+
+              {adminTab === "customers" && (
+                <CrmCustomersView
+                  orders={orders}
+                  tickets={tickets}
+                />
+              )}
+
+              {adminTab === "ai_conversations" && (
+                <CrmAiConversationsView />
+              )}
+
+              {adminTab === "orders" && (
+                <OrderRegistryView
+                  orders={orders}
+                  onRefreshOrders={loadOrders}
+                />
+              )}
+
+              {adminTab === "returns" && (
+                <CrmReturnsRefundsView />
+              )}
+
+              {adminTab === "products" && (
+                <div className="p-6 space-y-4 max-w-7xl mx-auto overflow-y-auto h-full">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-xl font-bold flex items-center gap-2">
+                        <Package className={`w-5 h-5 ${t.accentText}`} />
+                        <span>Product Store Inventory</span>
+                      </h2>
+                      <p className="text-xs opacity-75">
+                        Manage active store SKUs, prices, categories, and warehouse inventory.
+                      </p>
+                    </div>
+                    <button
+                      onClick={loadProducts}
+                      className={`text-xs font-bold hover:underline ${t.accentText}`}
+                    >
+                      Refresh Inventory
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {products.map((p) => {
+                      const enh = p.sku ? getProductEnhancement(p.sku) : null;
+                      return (
+                        <div
+                          key={p._id}
+                          className={`p-4 rounded-2xl border flex flex-col justify-between overflow-hidden ${t.card}`}
+                        >
+                          {enh && (
+                            <div className="relative -mx-4 -mt-4 mb-3 h-36 bg-black/10 overflow-hidden">
+                              <img
+                                src={enh.image}
+                                alt={p.name}
+                                className="w-full h-full object-cover"
+                              />
+                              {enh.badge && (
+                                <span
+                                  className={`absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm ${t.badgeHighlight}`}
+                                >
+                                  {enh.badge}
+                                </span>
+                              )}
                             </div>
                           )}
                           <div>
-                            Delivery Address: {o.shippingAddress.street},{" "}
-                            {o.shippingAddress.city}, {o.shippingAddress.state}
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="font-mono text-[10px] opacity-60">{p.sku}</span>
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${t.badgeHighlight}`}>
+                                {p.category}
+                              </span>
+                            </div>
+                            <h4 className="font-bold text-sm mb-1">{p.name}</h4>
+                            <p className="text-xs opacity-70 line-clamp-2 mb-3">{p.description}</p>
                           </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* TAB 3: PRODUCTS VIEW */}
-          {activeTab === "products" && (
-            <div className="flex-1 p-6 overflow-y-auto">
-              <div className="max-w-5xl mx-auto">
-                {/* Search Bar */}
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="relative flex-1">
-                    <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-500" />
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && loadProducts()}
-                      placeholder="Search store catalogue by name, SKU, or category..."
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
-                    />
-                  </div>
-                  <button
-                    onClick={loadProducts}
-                    className="bg-slate-800 hover:bg-slate-700 text-xs px-4 py-2 rounded-xl transition text-slate-300"
-                  >
-                    Search
-                  </button>
-                </div>
-
-                {productsLoading ? (
-                  <div className="p-8 text-center text-xs text-slate-500">
-                    Loading products...
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {products.map((p) => (
-                      <div
-                        key={p._id}
-                        className="p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-700 transition flex flex-col justify-between"
-                      >
-                        <div>
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-[10px] font-mono text-emerald-400">
-                              {p.sku}
+                          <div className="pt-2 border-t border-current/10 flex items-center justify-between">
+                            <span className={`font-extrabold text-sm ${t.accentText}`}>
+                              ₹{p.price.toLocaleString("en-IN")}
                             </span>
-                            <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">
-                              {p.category}
+                            <span className="text-[11px] font-semibold opacity-80">
+                              Stock: {p.stock}
                             </span>
                           </div>
-                          <h3 className="text-sm font-semibold text-slate-100 mb-1">
-                            {p.name}
-                          </h3>
-                          <p className="text-xs text-slate-400 line-clamp-2 mb-3">
-                            {p.description}
-                          </p>
                         </div>
-                        <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
-                          <span className="text-sm font-bold text-emerald-400">
-                            ₹{p.price.toLocaleString()}
-                          </span>
-                          <span className="text-[10px] text-slate-500">
-                            Stock: {p.stock} units
-                          </span>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
+
+              {adminTab === "knowledge" && <KnowledgeBaseView />}
+
+              {adminTab === "analytics" && (
+                <CrmAnalyticsView
+                  orders={orders}
+                  tickets={tickets}
+                />
+              )}
+
+              {adminTab === "calls" && <TelephonyVoiceView />}
+
+              {adminTab === "settings" && <CrmSettingsView />}
             </div>
-          )}
-
-          {/* TAB 4: ADMIN GOVERNANCE VIEW */}
-          {activeTab === "admin" && user?.role === "admin" && (
-            <div className="flex-1 p-6 overflow-y-auto">
-              <div className="max-w-4xl mx-auto space-y-6">
-                <div>
-                  <h2 className="text-base font-bold text-slate-100">
-                    System Administration & Policy Governance
-                  </h2>
-                  <p className="text-xs text-slate-400 mt-1">
-                    Manage support staff, review audit trails, and oversee system operations.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl">
-                    <div className="text-xs text-slate-400">Total System Tickets</div>
-                    <div className="text-2xl font-bold text-slate-100 mt-1">
-                      {tickets.length}
-                    </div>
-                  </div>
-                  <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl">
-                    <div className="text-xs text-slate-400">Active Products</div>
-                    <div className="text-2xl font-bold text-emerald-400 mt-1">
-                      {products.length || 6}
-                    </div>
-                  </div>
-                  <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl">
-                    <div className="text-xs text-slate-400">Security Rule</div>
-                    <div className="text-xs font-semibold text-amber-300 mt-2">
-                      RBAC & IDOR Strict Policy
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-slate-900/60 border border-slate-800 rounded-xl">
-                  <h3 className="text-xs font-semibold uppercase text-slate-400 tracking-wider mb-2">
-                    Role-Based Access Control Map
-                  </h3>
-                  <div className="text-xs text-slate-300 space-y-2">
-                    <div>
-                      • <strong>Customers:</strong> Strictly sandboxed to their own orders and tickets.
-                    </div>
-                    <div>
-                      • <strong>Support Agents:</strong> Can triage all tickets, reply publicly, and add private staff notes.
-                    </div>
-                    <div>
-                      • <strong>Admins:</strong> Full platform visibility, article publishing, and user governance.
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          </main>
         </div>
-      </main>
+      )}
 
-      {/* Raise Support Ticket Modal */}
+      {/* Customer Raise Ticket Modal */}
       {showNewTicketModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 text-slate-100">
-            <h2 className="text-base font-bold mb-4">Raise a Support Ticket</h2>
-            <form onSubmit={handleCreateTicket} className="space-y-3">
+        <div className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4">
+          <div className={`w-full max-w-md rounded-2xl p-6 border shadow-2xl space-y-4 ${t.card}`}>
+            <h3 className="font-bold text-base flex items-center gap-2">
+              <Plus className="w-4 h-4 text-emerald-500" />
+              <span>Raise Support Ticket</span>
+            </h3>
+
+            <form onSubmit={handleCreateTicket} className="space-y-3 text-xs">
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">
-                  Subject
-                </label>
+                <label className="block font-semibold mb-1 opacity-80">Subject / Issue Summary</label>
                 <input
                   type="text"
                   required
                   value={newSubject}
                   onChange={(e) => setNewSubject(e.target.value)}
-                  placeholder="e.g. Issue with my headphones"
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
+                  placeholder="e.g. Defective wireless headphone / Return request"
+                  className={`w-full px-3 py-2 rounded-xl border focus:outline-none ${t.input}`}
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1">
-                    Category
-                  </label>
+                  <label className="block font-semibold mb-1 opacity-80">Category</label>
                   <select
                     value={newCategory}
-                    onChange={(e) =>
-                      setNewCategory(e.target.value as TicketCategory)
-                    }
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-2 text-xs text-slate-100 focus:outline-none"
+                    onChange={(e) => setNewCategory(e.target.value as TicketCategory)}
+                    className={`w-full px-3 py-2 rounded-xl border focus:outline-none ${t.input}`}
                   >
                     <option value="order_issue">Order Issue</option>
                     <option value="product_inquiry">Product Inquiry</option>
@@ -1101,16 +1119,13 @@ const MainApp = () => {
                     <option value="complaint">Complaint</option>
                   </select>
                 </div>
+
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1">
-                    Priority
-                  </label>
+                  <label className="block font-semibold mb-1 opacity-80">Priority</label>
                   <select
                     value={newPriority}
-                    onChange={(e) =>
-                      setNewPriority(e.target.value as TicketPriority)
-                    }
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-2 text-xs text-slate-100 focus:outline-none"
+                    onChange={(e) => setNewPriority(e.target.value as TicketPriority)}
+                    className={`w-full px-3 py-2 rounded-xl border focus:outline-none ${t.input}`}
                   >
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
@@ -1121,45 +1136,41 @@ const MainApp = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">
-                  Order Number (Optional)
-                </label>
+                <label className="block font-semibold mb-1 opacity-80">Order Number (Optional)</label>
                 <input
                   type="text"
                   value={newOrderId}
                   onChange={(e) => setNewOrderId(e.target.value)}
                   placeholder="e.g. ORD-1001"
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
+                  className={`w-full px-3 py-2 rounded-xl border focus:outline-none ${t.input}`}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">
-                  Initial Message
-                </label>
+                <label className="block font-semibold mb-1 opacity-80">Initial Message</label>
                 <textarea
                   rows={3}
-                  value={newInitialMessage}
-                  onChange={(e) => setNewInitialMessage(e.target.value)}
-                  placeholder="Describe your issue..."
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
+                  value={newInitialMsg}
+                  onChange={(e) => setNewInitialMsg(e.target.value)}
+                  placeholder="Describe your issue in detail..."
+                  className={`w-full px-3 py-2 rounded-xl border focus:outline-none ${t.input}`}
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3">
+              <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowNewTicketModal(false)}
-                  className="text-xs px-3 py-1.5 text-slate-400 hover:text-slate-200"
+                  className="px-3 py-2 rounded-xl opacity-70 hover:opacity-100"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={ticketSubmitting}
-                  className="text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-4 py-1.5 rounded-lg transition"
+                  className={`px-4 py-2 rounded-xl font-bold ${t.primaryButton}`}
                 >
-                  {ticketSubmitting ? "Submitting..." : "Create Ticket"}
+                  {ticketSubmitting ? "Submitting..." : "Submit Ticket"}
                 </button>
               </div>
             </form>
@@ -1171,13 +1182,15 @@ const MainApp = () => {
 };
 
 /* =========================================================================
-   3. ROOT APP WITH AUTH WRAPPER
+   3. ROOT EXPORT WITH PROVIDERS
    ========================================================================= */
 export default function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
@@ -1186,11 +1199,14 @@ function AppContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400 text-xs">
-        Loading ShopEase Support...
+      <div className="min-h-screen bg-[#0d0d0b] flex items-center justify-center text-xs text-[#f5e7bf]">
+        <div className="flex items-center gap-2 animate-pulse">
+          <Sparkles className="w-4 h-4 text-[#d9a83e]" />
+          <span>Loading ShopEase AI Platform...</span>
+        </div>
       </div>
     );
   }
 
-  return user ? <MainApp /> : <AuthView />;
+  return user ? <MainWorkspace /> : <AuthView />;
 }

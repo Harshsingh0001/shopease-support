@@ -1,4 +1,3 @@
-
 @import "tailwindcss";
 
 :root {
@@ -10,7 +9,52 @@
   -moz-osx-font-smoothing: grayscale;
   font-optical-sizing: auto;
   font-weight: 400;
-  color-scheme: light;
+
+  /* Theme 1: Light theme – Forest Green + Warm White + Emerald */
+  --bg-page: #fbfbf9;              /* Warm White */
+  --bg-surface: #ffffff;           /* Crisp White Card */
+  --bg-surface-soft: #f7f7f4;      /* Soft Warm White */
+  --bg-surface-hover: #eef6f0;     /* Soft Green Tint */
+  --text-main: #1f2923;            /* Deep Forest Charcoal */
+  --text-muted: #64746b;           /* Muted Sage */
+  --border-line: #e2e8e2;          /* Subtle Warm Border */
+  --brand-primary: #059669;        /* Emerald Green */
+  --brand-primary-hover: #047857;  /* Darker Emerald */
+  --brand-primary-soft: #e6f4ea;   /* Emerald Tint */
+  --brand-primary-text: #ffffff;   /* Pure White Text */
+  --bg-sidebar: #124a38;           /* Deep Forest Green */
+  --text-sidebar: #f2f7f4;         /* Soft White-Green */
+  --text-sidebar-muted: #a3c4b2;   /* Soft Forest Sage */
+  --sidebar-hover: #185a45;        /* Forest Hover */
+  --sidebar-active: #059669;       /* Active Emerald */
+  --badge-bg: #e6f4ea;            /* Warm Emerald Soft */
+  --badge-text: #047857;           /* Deep Emerald */
+  --highlight: #10b981;            /* Emerald Highlight Accent */
+  --highlight-border: #a7f3d0;     /* Mint Highlight Border */
+}
+
+:root.dark, html.dark {
+  /* Theme 2: Dark theme – Premium Golden + Charcoal + Black */
+  --bg-page: #0d0d0b;              /* Main Background */
+  --bg-surface: #1c1b18;           /* Cards / Secondary Background */
+  --bg-surface-soft: #23221e;      /* Subtle Charcoal Elevation */
+  --bg-surface-hover: #2a2924;     /* Graphite Hover */
+  --text-main: #f5f4ef;            /* Off-White Text */
+  --text-muted: #9e9788;           /* Warm Sand Muted */
+  --border-line: #353229;          /* Bronze/Charcoal Border */
+  --brand-primary: #d9a83e;        /* Premium Gold */
+  --brand-primary-hover: #edbd52;  /* Radiant Gold Hover */
+  --brand-primary-soft: #382f1c;   /* Dark Gold Tint */
+  --brand-primary-text: #17140d;   /* Deep Obsidian Text on Gold */
+  --bg-sidebar: #11110f;           /* Jet Black / Deep Charcoal */
+  --text-sidebar: #f5e7bf;         /* Champagne Text */
+  --text-sidebar-muted: #a39c8c;   /* Muted Champagne/Sand */
+  --sidebar-hover: #1d1c18;        /* Graphite Hover */
+  --sidebar-active: #d9a83e;       /* Radiant Gold Active */
+  --badge-bg: #382f1c;            /* Deep Gold */
+  --badge-text: #f5e7bf;           /* Champagne Badge Text */
+  --highlight: #f5e7bf;            /* Champagne Highlight */
+  --highlight-border: #d9a83e;     /* Premium Gold Border */
 }
 
 * {
@@ -29,6 +73,9 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 body,
@@ -44,16 +91,6 @@ button:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  outline: 2px solid #6aa987;
-  outline-offset: 3px;
-}
-
-::selection {
-  background: #cbe7d1;
-  color: #143e2b;
-}
-
-#root {
-  width: 100%;
-  min-height: 100vh;
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
 }
