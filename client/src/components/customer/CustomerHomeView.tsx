@@ -180,6 +180,7 @@ export const CustomerHomeView: React.FC<CustomerHomeViewProps> = ({
                 key={cat.id}
                 type="button"
                 onClick={() => handleCategoryClick(cat.id)}
+                aria-label={`Filter by department: ${cat.label}`}
                 className={`p-3 rounded-2xl border text-center transition-all duration-200 flex flex-col items-center justify-between gap-2 hover:-translate-y-0.5 hover:shadow-md ${t.cardMuted} ${t.divider}`}
               >
                 <div className="p-2.5 rounded-xl bg-current/5">
@@ -187,7 +188,7 @@ export const CustomerHomeView: React.FC<CustomerHomeViewProps> = ({
                 </div>
                 <div>
                   <div className="font-extrabold text-xs">{cat.label}</div>
-                  <div className="text-[10px] font-semibold opacity-60 mt-0.5">{cat.tag}</div>
+                  <div className="text-[10px] font-semibold opacity-75 mt-0.5">{cat.tag}</div>
                 </div>
               </button>
             );
@@ -195,9 +196,9 @@ export const CustomerHomeView: React.FC<CustomerHomeViewProps> = ({
         </div>
       </div>
 
-      {/* 3. Limited-Time Deal of the Day Banner */}
-      {dealProduct && (
-        <div className={`p-5 sm:p-6 rounded-3xl border shadow-xl relative overflow-hidden ${t.card}`}>
+      {/* 3. Limited-Time Deal of the Day Banner with CLS-Protected Height */}
+      {dealProduct ? (
+        <div className={`p-5 sm:p-6 rounded-3xl border shadow-xl relative overflow-hidden min-h-[460px] lg:min-h-[280px] ${t.card}`}>
           <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
             <div className="space-y-3 flex-1">
               <div className="flex flex-wrap items-center gap-2.5">
@@ -217,7 +218,7 @@ export const CustomerHomeView: React.FC<CustomerHomeViewProps> = ({
               </div>
 
               <div>
-                <h3 className="text-lg sm:text-xl font-black tracking-tight">{dealProduct.name}</h3>
+                <h2 className="text-lg sm:text-xl font-black tracking-tight">{dealProduct.name}</h2>
                 <p className="text-xs opacity-75 line-clamp-2 mt-1">
                   {dealProduct.description}
                 </p>
@@ -228,7 +229,7 @@ export const CustomerHomeView: React.FC<CustomerHomeViewProps> = ({
                 <span className={`text-2xl font-black ${t.accentText}`}>
                   ₹{dealProduct.price.toLocaleString("en-IN")}
                 </span>
-                <span className="text-xs opacity-50 line-through">
+                <span className="text-xs opacity-75 line-through">
                   ₹{(dealProduct.price + 1800).toLocaleString("en-IN")}
                 </span>
                 <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-md">
@@ -242,7 +243,7 @@ export const CustomerHomeView: React.FC<CustomerHomeViewProps> = ({
                   <span className="text-rose-500 flex items-center gap-1">
                     <Flame className="w-3 h-3 fill-rose-500" /> 78% Claimed
                   </span>
-                  <span className="opacity-60">Only 6 units left at this price</span>
+                  <span className="opacity-80">Only 6 units left at this price</span>
                 </div>
                 <div className="w-full h-2 rounded-full bg-current/10 overflow-hidden">
                   <div className="h-full bg-rose-500 rounded-full w-[78%] transition-all duration-500" />
@@ -283,21 +284,43 @@ export const CustomerHomeView: React.FC<CustomerHomeViewProps> = ({
               </div>
             </div>
 
-            {/* Deal Image Frame */}
-            <div
+            {/* Deal Image Frame: Fast LCP with explicit dimensions and high priority */}
+            <button
+              type="button"
               onClick={() => onOpenProductDetails(dealProduct)}
-              className="w-full sm:w-64 h-52 sm:h-56 rounded-2xl overflow-hidden cursor-pointer shrink-0 border relative group shadow-md"
+              aria-label={`View details and specifications for ${dealProduct.name}`}
+              className="w-full sm:w-64 h-52 sm:h-56 rounded-2xl overflow-hidden cursor-pointer shrink-0 border relative group shadow-md aspect-[4/3] bg-neutral-900 text-left focus:outline-none focus:ring-2 focus:ring-emerald-500"
             >
               <img
-                src={getProductEnhancement(dealProduct.sku).image}
+                src={getProductEnhancement(dealProduct.sku).image.replace("w=800", "w=480").replace("q=80", "q=75")}
                 alt={dealProduct.name}
+                width="256"
+                height="224"
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
               <div className="absolute top-2 right-2 bg-rose-500 text-white font-extrabold text-[10px] px-2 py-0.5 rounded-full shadow-md">
                 LIMITED DEAL
               </div>
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className={`p-5 sm:p-6 rounded-3xl border shadow-xl relative overflow-hidden min-h-[460px] lg:min-h-[280px] animate-pulse flex flex-col lg:flex-row justify-between gap-6 ${t.card}`}>
+          <div className="space-y-3 flex-1">
+            <div className="w-32 h-6 rounded-full bg-current/10" />
+            <div className="w-3/4 h-7 rounded-xl bg-current/10" />
+            <div className="w-full h-4 rounded bg-current/10" />
+            <div className="w-40 h-8 rounded-lg bg-current/10 mt-4" />
+            <div className="w-full max-w-md h-3 rounded-full bg-current/10" />
+            <div className="flex gap-2 pt-2">
+              <div className="w-32 h-9 rounded-xl bg-current/10" />
+              <div className="w-28 h-9 rounded-xl bg-current/10" />
             </div>
           </div>
+          <div className="w-full sm:w-64 h-52 sm:h-56 rounded-2xl bg-current/10 shrink-0" />
         </div>
       )}
 
@@ -322,20 +345,41 @@ export const CustomerHomeView: React.FC<CustomerHomeViewProps> = ({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {bestSellers.map((prod) => (
-            <ProductCard
-              key={prod._id}
-              product={prod}
-              onAddToCart={(p) => onAddToCart(p)}
-              onOpenDetails={onOpenProductDetails}
-              onAskAiAboutProduct={(p) =>
-                onAskAi(
-                  `Tell me about ${p.name} (SKU: ${p.sku}) - price ₹${p.price}, stock availability, warranty and returns policy.`
-                )
-              }
-              isAdded={cartProductIds.includes(prod._id)}
-            />
-          ))}
+          {bestSellers.length > 0 ? (
+            bestSellers.map((prod) => (
+              <ProductCard
+                key={prod._id}
+                product={prod}
+                onAddToCart={(p) => onAddToCart(p)}
+                onOpenDetails={onOpenProductDetails}
+                onAskAiAboutProduct={(p) =>
+                  onAskAi(
+                    `Tell me about ${p.name} (SKU: ${p.sku}) - price ₹${p.price}, stock availability, warranty and returns policy.`
+                  )
+                }
+                isAdded={cartProductIds.includes(prod._id)}
+              />
+            ))
+          ) : (
+            [...Array(4)].map((_, i) => (
+              <div
+                key={i}
+                className={`rounded-3xl p-4 flex flex-col justify-between border min-h-[440px] animate-pulse ${t.card}`}
+              >
+                <div>
+                  <div className="h-56 rounded-2xl bg-current/10 mb-4" />
+                  <div className="h-4 w-1/3 bg-current/10 rounded mb-2" />
+                  <div className="h-5 w-3/4 bg-current/10 rounded mb-2" />
+                  <div className="h-3 w-full bg-current/10 rounded mb-1" />
+                  <div className="h-3 w-2/3 bg-current/10 rounded" />
+                </div>
+                <div className="pt-3 border-t border-current/10">
+                  <div className="h-6 w-1/2 bg-current/10 rounded mb-3" />
+                  <div className="h-9 w-full bg-current/10 rounded-xl" />
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
@@ -349,8 +393,8 @@ export const CustomerHomeView: React.FC<CustomerHomeViewProps> = ({
                 <Icon className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-extrabold text-xs">{badge.title}</h4>
-                <p className="text-[11px] opacity-70 leading-snug">{badge.desc}</p>
+                <h3 className="font-extrabold text-xs">{badge.title}</h3>
+                <p className="text-[11px] opacity-75 leading-snug">{badge.desc}</p>
               </div>
             </div>
           );
@@ -364,7 +408,7 @@ export const CustomerHomeView: React.FC<CustomerHomeViewProps> = ({
             <BookOpen className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="font-black text-sm sm:text-base">Grounded Policies & 24/7 Grounded AI</h3>
+            <h2 className="font-black text-sm sm:text-base">Grounded Policies & 24/7 Grounded AI</h2>
             <p className="text-xs opacity-75 mt-0.5">
               Have questions regarding 7-day returns, warranty claims, or express shipping? Access our official policies or ask our AI.
             </p>

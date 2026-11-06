@@ -31,12 +31,12 @@ interface ChatMessage {
     type:
       | "carrier_telemetry"
       | "product_recommendations"
-      | "address_updated"
-      | "order_cancelled"
-      | "return_initiated"
-      | "compensation_coupon"
+      | "cancellation_approval_request"
+      | "address_change_approval_request"
+      | "agent_transfer"
       | "tax_invoice"
-      | "device_troubleshooter";
+      | "device_troubleshooter"
+      | "related_options";
     data: Record<string, any>;
   };
 }
@@ -46,6 +46,7 @@ interface FloatingAiChatProps {
   onToggle: () => void;
   initialQuery?: string;
   onAddToCart?: (product: Product) => void;
+  onOpenTicketModal?: (ticketIdOrNumber: string) => void;
 }
 
 export const FloatingAiChat: React.FC<FloatingAiChatProps> = ({
@@ -53,6 +54,7 @@ export const FloatingAiChat: React.FC<FloatingAiChatProps> = ({
   onToggle,
   initialQuery,
   onAddToCart,
+  onOpenTicketModal,
 }) => {
   const { user } = useAuth();
   const { theme } = useTheme();
@@ -62,7 +64,7 @@ export const FloatingAiChat: React.FC<FloatingAiChatProps> = ({
     {
       id: "welcome-1",
       sender: "ai",
-      text: "Hello! Welcome to ShopEase. I'm your AI support assistant. I have live access to your orders, verified product details, and store return policies. How can I assist you today?",
+      text: "Hello! Welcome to ShopEase. I'm your AI support assistant. I'm here to answer your questions about order tracking, GST tax invoices, and return/refund policies. How can I assist you today?",
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     },
   ]);
@@ -74,6 +76,31 @@ export const FloatingAiChat: React.FC<FloatingAiChatProps> = ({
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // Close / Collapse on Outside Click or Escape
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+        onToggle();
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onToggle();
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onToggle]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -217,44 +244,59 @@ export const FloatingAiChat: React.FC<FloatingAiChatProps> = ({
 
   const quickActions = [
     { label: "📦 Track ORD-1001", query: "Where is my order ORD-1001 right now?" },
-    { label: "📍 Update Address", query: "Change delivery address for ORD-1001 to Flat 204, Indiranagar, Bengaluru" },
+    { label: "📍 Request Address Change", query: "Change delivery address for ORD-1001 to Flat 204, Indiranagar, Bengaluru" },
+    { label: "❌ Request Cancellation", query: "Cancel my order ORD-1001" },
     { label: "📄 GST Invoice", query: "Download tax invoice for ORD-1001" },
     { label: "🎧 Headphones < ₹5000", query: "Recommend best wireless headphones under 5000 with warranty" },
-    { label: "🏷️ Claim ₹200 Voucher", query: "My delivery was delayed, can I get compensation or discount voucher?" },
     { label: "🛠️ Troubleshoot Audio", query: "My headphone bluetooth is not connecting, help me troubleshoot" },
-    { label: "👤 Talk to Real Agent", query: "Connect me to a real person right now, I want human support." },
   ];
 
   return (
     <>
-      {/* Floating Chat Trigger Button */}
+      {/* Floating Chat Trigger Button: Liquid Gold Glow */}
       {!isOpen && (
         <button
           type="button"
           onClick={onToggle}
+          aria-label="Chat with ShopEase AI Support Assistant"
           title="Chat with ShopEase AI Support Assistant"
-          className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 p-3.5 sm:p-4 rounded-full shadow-2xl flex items-center gap-2.5 sm:gap-3 transition-transform duration-300 hover:scale-105 active:scale-95 ${t.primaryButton}`}
+          className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 p-3.5 sm:p-4 rounded-full shadow-2xl flex items-center gap-2.5 sm:gap-3 transition-all duration-300 hover:scale-105 active:scale-95 ${
+            t.isDark
+              ? "bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-black shadow-[0_0_25px_rgba(217,168,62,0.5),inset_0_1px_0_rgba(255,255,255,0.35)] hover:shadow-[0_0_35px_rgba(217,168,62,0.75)]"
+              : t.primaryButton
+          }`}
         >
           <div className="relative">
-            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 animate-spin-slow" />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-stone-950 animate-spin-slow" />
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-200 animate-ping" />
           </div>
           <span className="font-black text-xs sm:text-sm pr-1">Ask ShopEase AI</span>
         </button>
       )}
 
-      {/* Expanded Floating Chat Panel */}
+      {/* Expanded Floating Chat Panel: Obsidian Glass with Gold Accents */}
       {isOpen && (
         <div
-          className={`fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-24px)] sm:w-[440px] h-[600px] max-h-[88vh] rounded-3xl border shadow-2xl flex flex-col overflow-hidden transition-all duration-300 backdrop-blur-md ${t.card} ${t.divider}`}
+          ref={panelRef}
+          className={`fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-24px)] sm:w-[440px] h-[600px] max-h-[88vh] rounded-3xl border shadow-2xl flex flex-col overflow-hidden transition-all duration-300 backdrop-blur-2xl ${
+            t.isDark
+              ? "bg-gradient-to-b from-[#11100c]/98 via-[#090806]/98 to-[#040403]/98 border-amber-500/30 shadow-[0_24px_70px_rgba(0,0,0,0.95),inset_0_1px_0_rgba(255,255,255,0.15)] text-neutral-100"
+              : `${t.card} ${t.divider}`
+          }`}
         >
           {/* Header Bar */}
-          <div className={`p-4 border-b flex items-center justify-between shrink-0 ${t.divider} ${t.cardMuted}`}>
+          <div
+            className={`p-4 border-b flex items-center justify-between shrink-0 transition-all ${
+              t.isDark
+                ? "border-amber-500/20 bg-[#090806]/95"
+                : `${t.divider} ${t.cardMuted}`
+            }`}
+          >
             <div className="flex items-center gap-3">
               <div
-                className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold shadow-md ${
+                className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold shadow-md transition-all duration-300 hover:scale-105 ${
                   t.isDark
-                    ? "bg-[#382f1c] text-[#f5e7bf] border border-[#d9a83e]/40"
+                    ? "bg-gradient-to-br from-amber-400/30 via-yellow-500/20 to-amber-700/30 text-amber-300 border border-amber-400/50 shadow-[0_0_20px_rgba(217,168,62,0.35)]"
                     : "bg-[#124a38] text-white"
                 }`}
               >
@@ -262,10 +304,12 @@ export const FloatingAiChat: React.FC<FloatingAiChatProps> = ({
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <h3 className="font-black text-sm">ShopEase AI Assistant</h3>
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <h3 className={`font-black text-sm ${t.isDark ? "text-white" : ""}`}>
+                    ShopEase AI Assistant
+                  </h3>
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shadow-[0_0_8px_rgba(251,191,36,0.9)]" />
                 </div>
-                <p className="text-[10px] opacity-70">
+                <p className={`text-[10px] ${t.isDark ? "text-neutral-400" : "opacity-70"}`}>
                   Grounded in MongoDB • Multilingual (EN, HI, Hinglish)
                 </p>
               </div>
@@ -274,34 +318,43 @@ export const FloatingAiChat: React.FC<FloatingAiChatProps> = ({
             <button
               type="button"
               onClick={onToggle}
-              className="p-2 opacity-70 hover:opacity-100 hover:bg-current/10 rounded-xl transition"
+              aria-label="Minimize chat window"
+              className={`p-2 rounded-xl transition-all duration-200 hover:scale-110 ${
+                t.isDark
+                  ? "text-neutral-400 hover:text-amber-300 hover:bg-amber-500/10"
+                  : "opacity-70 hover:opacity-100 hover:bg-current/10"
+              }`}
               title="Minimize chat"
             >
               <Minimize2 className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Quick Action Suggestion Chips */}
-          <div className="px-3 py-2 border-b border-current/10 overflow-x-auto flex gap-1.5 scrollbar-none shrink-0 bg-current/5">
-            {quickActions.map((qa, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => sendMessage(qa.query)}
-                disabled={loading}
-                className={`text-[11px] font-bold px-3 py-1 rounded-full whitespace-nowrap border transition active:scale-95 disabled:opacity-50 ${
-                  t.isDark
-                    ? "bg-[#23221e] hover:bg-[#2d2b24] border-[#353229] text-[#f5e7bf]"
-                    : "bg-white hover:bg-[#f3f7f4] border-[#e2e8e2] text-[#1f2923]"
-                }`}
-              >
-                {qa.label}
-              </button>
-            ))}
-          </div>
-
           {/* Messages Scroll Area */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3.5">
+            {/* Starter Suggestion Pills in Chat (Only Before Queries) */}
+            {messages.length <= 1 && (
+              <div className="pt-2 pb-1 space-y-2">
+                <p className="text-[10px] font-bold text-amber-400/80 uppercase tracking-wider">Suggested Inquiries:</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {quickActions.slice(0, 3).map((qa, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => sendMessage(qa.query)}
+                      disabled={loading}
+                      className={`text-[10px] font-semibold px-2.5 py-1 rounded-xl border transition-all duration-200 hover:scale-105 active:scale-95 ${
+                        t.isDark
+                          ? "bg-gradient-to-b from-[#11100d] to-[#070705] hover:from-[#1b1812] hover:to-[#0e0c08] border-amber-500/20 hover:border-amber-400/60 text-neutral-100 shadow-sm"
+                          : "bg-white hover:bg-[#f3f7f4] border-[#e2e8e2] text-[#1f2923]"
+                      }`}
+                    >
+                      {qa.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             {messages.map((m) => {
               const isAi = m.sender === "ai";
               const isCustomer = m.sender === "customer";
@@ -310,7 +363,13 @@ export const FloatingAiChat: React.FC<FloatingAiChatProps> = ({
               if (isSystem) {
                 return (
                   <div key={m.id} className="text-center my-2">
-                    <span className="text-[11px] font-semibold px-3 py-1.5 rounded-full bg-amber-500/15 text-amber-500 border border-amber-500/30 inline-block max-w-xs shadow-xs">
+                    <span
+                      className={`text-[11px] font-semibold px-3 py-1.5 rounded-full border inline-block max-w-xs shadow-xs ${
+                        t.isDark
+                          ? "bg-gradient-to-r from-[#1c1404] to-[#0b0801] border-amber-500/40 text-amber-300"
+                          : "bg-amber-500/15 text-amber-500 border-amber-500/30"
+                      }`}
+                    >
                       ⚡ {m.text}
                     </span>
                   </div>
@@ -323,25 +382,45 @@ export const FloatingAiChat: React.FC<FloatingAiChatProps> = ({
                   className={`flex flex-col ${isCustomer ? "items-end" : "items-start"}`}
                 >
                   <div
-                    className={`max-w-[88%] rounded-2xl p-3.5 text-xs leading-relaxed shadow-sm space-y-2 ${
-                      isCustomer ? t.chatBubbleCustomer : t.chatBubbleAi
+                    className={`max-w-[88%] rounded-2xl p-3.5 text-xs leading-relaxed space-y-2.5 transition-all duration-300 ${
+                      isCustomer
+                        ? t.isDark
+                          ? "rounded-tr-sm bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-stone-950 font-bold shadow-[0_8px_25px_rgba(217,168,62,0.35),inset_0_1px_0_rgba(255,255,255,0.35)] border border-amber-300/50 hover:shadow-[0_10px_30px_rgba(217,168,62,0.45)]"
+                          : t.chatBubbleCustomer
+                        : t.isDark
+                        ? "rounded-tl-sm bg-gradient-to-b from-[#11100d] via-[#090807] to-[#040404] text-neutral-100 border border-amber-500/25 shadow-[0_12px_40px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-xl"
+                        : t.chatBubbleAi
                     }`}
                   >
-                    <div className="flex items-center justify-between gap-3 text-[10px] opacity-70">
-                      <span className="font-extrabold">
+                    <div
+                      className={`flex items-center justify-between gap-3 text-[10px] pb-1.5 ${
+                        isCustomer
+                          ? "border-b border-stone-950/20 text-stone-900"
+                          : t.isDark
+                          ? "border-b border-amber-500/20 text-neutral-400"
+                          : "opacity-70"
+                      }`}
+                    >
+                      <span className={`font-extrabold ${isCustomer ? "text-stone-950" : "text-white"}`}>
                         {isCustomer ? user?.name || "You" : "ShopEase AI"}
                       </span>
                       <div className="flex items-center gap-1.5">
-                        <span>{m.timestamp}</span>
+                        <span className={isCustomer ? "text-stone-900/80 font-bold" : ""}>{m.timestamp}</span>
                         {isAi && (
                           <button
                             type="button"
                             onClick={() => toggleSpeechSynthesis(m.id, m.text)}
                             title={speakingId === m.id ? "Stop voice" : "Read aloud"}
-                            className="opacity-75 hover:opacity-100"
+                            className={`p-0.5 rounded transition-all duration-200 hover:scale-110 ${
+                              speakingId === m.id
+                                ? "text-amber-400 animate-pulse"
+                                : t.isDark
+                                ? "text-neutral-400 hover:text-amber-300"
+                                : "opacity-75 hover:opacity-100"
+                            }`}
                           >
                             {speakingId === m.id ? (
-                              <VolumeX className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                              <VolumeX className="w-3.5 h-3.5 text-amber-400" />
                             ) : (
                               <Volume2 className="w-3.5 h-3.5" />
                             )}
@@ -350,24 +429,37 @@ export const FloatingAiChat: React.FC<FloatingAiChatProps> = ({
                       </div>
                     </div>
 
-                    <div className="whitespace-pre-wrap">{m.text}</div>
+                    <div className={`whitespace-pre-wrap ${isCustomer ? "text-stone-950 font-semibold" : t.isDark ? "text-neutral-100" : ""}`}>
+                      {m.text}
+                    </div>
 
                     {/* Autonomous Generative UI Action Widgets & Agent Reasoning Trace */}
                     {isAi && (
                       <AiActionWidget
                         actionPayload={m.actionPayload}
                         agentThoughtProcess={m.agentThoughtProcess}
+                        intent={m.intent}
                         onSendMessage={sendMessage}
                         onAddToCart={onAddToCart}
+                        onOpenTicketModal={onOpenTicketModal}
                       />
                     )}
 
                     {/* Grounded Policy Sources Badge */}
                     {m.groundedSources && m.groundedSources.length > 0 && (
-                      <div className="pt-2 border-t border-current/15 text-[10px] opacity-80 flex items-center gap-1.5">
-                        <CheckCircle className="w-3 h-3 text-emerald-500 shrink-0" />
+                      <div
+                        className={`pt-2 border-t text-[10px] flex items-center gap-1.5 ${
+                          t.isDark
+                            ? "border-amber-500/20 text-neutral-300"
+                            : "border-current/15 opacity-80"
+                        }`}
+                      >
+                        <CheckCircle className="w-3 h-3 text-amber-400 shrink-0" />
                         <span className="truncate">
-                          Grounded in: <strong>{m.groundedSources.join(", ")}</strong>
+                          Grounded in:{" "}
+                          <strong className={t.isDark ? "text-amber-300" : ""}>
+                            {m.groundedSources.join(", ")}
+                          </strong>
                         </span>
                       </div>
                     )}
@@ -377,9 +469,15 @@ export const FloatingAiChat: React.FC<FloatingAiChatProps> = ({
             })}
 
             {loading && (
-              <div className="flex items-center gap-2.5 text-xs opacity-75 italic p-3 rounded-2xl bg-current/5 animate-pulse">
-                <Bot className="w-4 h-4 text-emerald-500" />
-                <span>ShopEase AI is querying order records & RAG policies...</span>
+              <div
+                className={`flex items-center gap-2.5 text-xs p-3 rounded-2xl border transition-all duration-300 ${
+                  t.isDark
+                    ? "bg-gradient-to-r from-[#11100d] to-[#070705] border-amber-500/25 text-amber-200 shadow-md"
+                    : "bg-current/5 border-transparent opacity-75 italic animate-pulse"
+                }`}
+              >
+                <Bot className="w-4 h-4 text-amber-400 animate-bounce" />
+                <span className="font-semibold text-white">ShopEase AI is querying live records...</span>
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -387,61 +485,78 @@ export const FloatingAiChat: React.FC<FloatingAiChatProps> = ({
 
           {/* Voice Mic Active Visualizer Banner */}
           {isListening && (
-            <div className="px-4 py-2.5 text-xs bg-rose-500/20 text-rose-400 border-t border-rose-500/30 flex items-center justify-between animate-pulse">
+            <div className="px-4 py-2.5 text-xs bg-rose-500/20 text-rose-300 border-t border-rose-500/40 flex items-center justify-between animate-pulse">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
-                <span className="font-bold">Listening in {user?.preferredLanguage || "en"}... Speak your question</span>
+                <span className="font-bold">Listening in {user?.preferredLanguage || "en"}... Speak now</span>
               </div>
               <button
                 type="button"
                 onClick={toggleSpeechRecognition}
-                className="text-[11px] font-bold underline"
+                className="text-[11px] font-bold underline hover:text-white"
               >
                 Cancel
               </button>
             </div>
           )}
 
-          {/* Input Composer */}
+          {/* Input Composer: Glossy Gold Finish */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
               sendMessage();
             }}
-            className={`p-3 border-t flex items-center gap-2 shrink-0 ${t.divider} ${t.cardMuted}`}
+            className={`p-3 border-t flex items-center gap-2 shrink-0 transition-all ${
+              t.isDark
+                ? "border-amber-500/20 bg-[#090806]/95"
+                : `${t.divider} ${t.cardMuted}`
+            }`}
           >
             {/* Mic STT Button */}
             <button
               type="button"
               onClick={toggleSpeechRecognition}
+              aria-label={isListening ? "Stop voice listening" : "Speak to AI with microphone"}
               title={isListening ? "Stop listening" : "Speak to AI"}
-              className={`p-2.5 rounded-2xl transition active:scale-95 ${
+              className={`p-2.5 rounded-2xl transition-all duration-200 active:scale-95 hover:scale-105 ${
                 isListening
                   ? "bg-rose-500 text-white animate-pulse"
+                  : t.isDark
+                  ? "bg-[#12110e] hover:bg-[#1a1711] text-amber-300 hover:text-amber-200 border border-amber-500/30 hover:border-amber-400/60"
                   : t.secondaryButton
               }`}
             >
               {isListening ? (
                 <MicOff className="w-4 h-4" />
               ) : (
-                <Mic className="w-4 h-4 opacity-75 hover:opacity-100" />
+                <Mic className="w-4 h-4 text-amber-400" />
               )}
             </button>
 
             {/* Query Input */}
             <input
               type="text"
+              aria-label="Message ShopEase AI support"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about orders, returns, warranty, or products..."
-              className={`flex-1 px-3.5 py-2.5 text-xs rounded-2xl focus:outline-none transition ${t.input}`}
+              className={`flex-1 px-3.5 py-2.5 text-xs rounded-2xl focus:outline-none transition-all duration-200 ${
+                t.isDark
+                  ? "bg-[#060605] text-white placeholder-neutral-500 border border-amber-500/25 focus:border-amber-400/60"
+                  : t.input
+              }`}
             />
 
             {/* Send Button */}
             <button
               type="submit"
               disabled={loading || !input.trim()}
-              className={`p-2.5 rounded-2xl transition active:scale-95 disabled:opacity-40 ${t.primaryButton}`}
+              aria-label="Send message to AI"
+              className={`p-2.5 rounded-2xl transition-all duration-200 active:scale-95 disabled:opacity-30 hover:scale-105 ${
+                t.isDark
+                  ? "bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-black shadow-[0_0_20px_rgba(217,168,62,0.45),inset_0_1px_0_rgba(255,255,255,0.35)] hover:shadow-[0_0_30px_rgba(217,168,62,0.7)]"
+                  : t.primaryButton
+              }`}
               title="Send message"
             >
               <Send className="w-4 h-4" />

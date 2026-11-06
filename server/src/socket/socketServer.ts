@@ -22,7 +22,18 @@ let io: SocketIOServer | null = null;
 export const initSocketServer = (httpServer: HttpServer): SocketIOServer => {
   io = new SocketIOServer(httpServer, {
     cors: {
-      origin: env.CLIENT_URL,
+      origin: (origin, callback) => {
+        if (
+          !origin ||
+          /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin) ||
+          origin === env.CLIENT_URL ||
+          env.NODE_ENV !== "production"
+        ) {
+          callback(null, true);
+        } else {
+          callback(new Error("Not allowed by CORS"), false);
+        }
+      },
       credentials: true,
     },
     pingTimeout: 20000,
@@ -151,6 +162,14 @@ export const emitNewMessage = (ticketId: string, message: unknown): void => {
     // Both customer and staff receive public messages
     io.to(`ticket:${ticketId}`).emit("message:new", message);
   }
+};
+
+/**
+ * Broadcast newly created ticket to staff
+ */
+export const emitTicketCreated = (ticket: unknown): void => {
+  if (!io) return;
+  io.emit("ticket:created", ticket);
 };
 
 /**

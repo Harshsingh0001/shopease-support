@@ -13,7 +13,10 @@ export type CustomerIntent =
   | "discount_compensation"
   | "product_recommendation"
   | "invoice_request"
-  | "hardware_diagnostic";
+  | "hardware_diagnostic"
+  | "order_payment_restriction"
+  | "issue_resolved"
+  | "need_more_help";
 
 export type DetectedLanguage = "en" | "hi" | "hinglish";
 
@@ -56,12 +59,12 @@ export interface ActionPayload {
   type:
     | "carrier_telemetry"
     | "product_recommendations"
-    | "address_updated"
-    | "order_cancelled"
-    | "return_initiated"
-    | "compensation_coupon"
+    | "cancellation_approval_request"
+    | "address_change_approval_request"
+    | "agent_transfer"
     | "tax_invoice"
-    | "device_troubleshooter";
+    | "device_troubleshooter"
+    | "related_options";
   data: Record<string, any>;
 }
 

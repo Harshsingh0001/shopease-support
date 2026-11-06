@@ -133,6 +133,27 @@ export const classifyIntent = (text: string): IntentAnalysis => {
     };
   }
 
+  // 4b. Order Creation & Payment Restriction Guardrail (AI cannot make orders or payments)
+  const orderPaymentPatterns = [
+    /\b(place|make|create|book) (an? )?order\b/i,
+    /\b(make|process|complete) payment\b/i,
+    /\bbuy (this|it )?for me\b/i,
+    /\bpay for my order\b/i,
+    /order kardo/i,
+    /payment kardo/i,
+    /order book kar/i,
+  ];
+
+  if (orderPaymentPatterns.some((p) => p.test(normalized))) {
+    return {
+      intent: "order_payment_restriction",
+      confidence: 0.98,
+      language,
+      extractedOrderNumber: orderNumber,
+      needsHumanEscalation: false,
+    };
+  }
+
   // 5. Order Cancellation Triggers
   const cancelPatterns = [
     /\bcancel\b/i, /cancel order/i, /order cancel/i, /cancel my order/i,
@@ -270,6 +291,51 @@ export const classifyIntent = (text: string): IntentAnalysis => {
     return {
       intent: "refund_inquiry",
       confidence: 0.88,
+      language,
+      extractedOrderNumber: orderNumber,
+      needsHumanEscalation: false,
+    };
+  }
+
+  // 12b. Problem Resolved / Positive Feedback
+  const resolvedPatterns = [
+    /\b(issue|problem) (resolved|solved|fixed)\b/i,
+    /\b(it is|it's) (resolved|solved|fixed)\b/i,
+    /\ball (good|clear|sorted)\b/i,
+    /\bthank you.*(resolved|helped)\b/i,
+    /theek ho gaya/i,
+    /resolve ho gaya/i,
+    /samadhan ho gaya/i,
+    /हल हो गया/i,
+  ];
+
+  if (resolvedPatterns.some((p) => p.test(normalized))) {
+    return {
+      intent: "issue_resolved",
+      confidence: 0.95,
+      language,
+      extractedOrderNumber: orderNumber,
+      needsHumanEscalation: false,
+    };
+  }
+
+  // 12c. Need More Help / Issue Not Resolved (Offer Related Options)
+  const unresolvedPatterns = [
+    /\bnot (resolved|solved|fixed)\b/i,
+    /\bstill (need help|have issue|having problem|broken)\b/i,
+    /\bneed more help\b/i,
+    /\bdidn't (help|resolve|solve|work)\b/i,
+    /\bproblem (not solved|still there|persists)\b/i,
+    /aur madad/i,
+    /solve nahi hua/i,
+    /theek nahi hua/i,
+    /हल नहीं हुआ/i,
+  ];
+
+  if (unresolvedPatterns.some((p) => p.test(normalized))) {
+    return {
+      intent: "need_more_help",
+      confidence: 0.92,
       language,
       extractedOrderNumber: orderNumber,
       needsHumanEscalation: false,

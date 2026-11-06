@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import type { Ticket, Message, Order } from "../../types";
 import { api } from "../../services/api";
+import { getSocket } from "../../services/socket";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { getThemeStyles } from "../../utils/themeStyles";
@@ -47,6 +48,24 @@ export const CrmInboxView: React.FC<CrmInboxViewProps> = ({
   useEffect(() => {
     if (selectedTicket) {
       loadMessages(selectedTicket._id);
+
+      const socket = getSocket();
+      socket.emit("ticket:join", { ticketId: selectedTicket._id });
+
+      const handleIncomingMessage = (newMsg: Message) => {
+        setMessages((prev) => {
+          if (prev.some((m) => m._id === newMsg._id)) return prev;
+          return [...prev, newMsg];
+        });
+        onRefreshTickets();
+      };
+
+      socket.on("message:new", handleIncomingMessage);
+
+      return () => {
+        socket.off("message:new", handleIncomingMessage);
+        socket.emit("ticket:leave", { ticketId: selectedTicket._id });
+      };
     } else if (tickets.length > 0) {
       setSelectedTicket(tickets[0]);
     }

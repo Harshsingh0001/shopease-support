@@ -572,7 +572,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       fill={isHovered ? (theme === "dark" ? "#f5e7bf" : "#ffffff") : (theme === "dark" ? "#d9a83e" : "#059669")}
                       stroke={theme === "dark" ? "#17140d" : "#124a38"}
                       strokeWidth={isHovered ? 3 : 2}
-                      className="transition-all duration-200"
+                      className="transition-opacity duration-200"
                     />
 
                     {/* Invisible Hitbox for Mouse Events */}
@@ -683,7 +683,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   strokeWidth={hoveredSlice === "ai" ? "16" : "13"}
                   strokeDasharray="225 240"
                   strokeDashoffset="0"
-                  className="transition-all duration-300 cursor-pointer"
+                  className="cursor-pointer transition-opacity duration-300"
                   onMouseEnter={() => setHoveredSlice("ai")}
                   onMouseLeave={() => setHoveredSlice(null)}
                 />
@@ -697,7 +697,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   strokeWidth={hoveredSlice === "human" ? "16" : "13"}
                   strokeDasharray="11 240"
                   strokeDashoffset="-225"
-                  className="transition-all duration-300 cursor-pointer"
+                  className="cursor-pointer transition-opacity duration-300"
                   onMouseEnter={() => setHoveredSlice("human")}
                   onMouseLeave={() => setHoveredSlice(null)}
                 />
@@ -711,7 +711,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   strokeWidth={hoveredSlice === "escalated" ? "16" : "13"}
                   strokeDasharray="4 240"
                   strokeDashoffset="-236"
-                  className="transition-all duration-300 cursor-pointer"
+                  className="cursor-pointer transition-opacity duration-300"
                   onMouseEnter={() => setHoveredSlice("escalated")}
                   onMouseLeave={() => setHoveredSlice(null)}
                 />

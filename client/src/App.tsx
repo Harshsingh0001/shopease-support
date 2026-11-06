@@ -13,34 +13,118 @@ import type {
 } from "./types";
 import { getThemeStyles } from "./utils/themeStyles";
 
-// Customer Panel Components
+// Customer Panel Components (Core Shell)
 import { CustomerNavbar, type CustomerViewType } from "./components/customer/CustomerNavbar";
 import { CustomerSidebar } from "./components/customer/CustomerSidebar";
-import { CategoryFilter, type SortOption } from "./components/customer/CategoryFilter";
 import { ProductCard } from "./components/customer/ProductCard";
-import { ProductDetailsModal } from "./components/customer/ProductDetailsModal";
-import { CartDrawer } from "./components/customer/CartDrawer";
-import { CustomerDashboard } from "./components/customer/CustomerDashboard";
-import { FloatingAiChat } from "./components/customer/FloatingAiChat";
 import { CustomerHomeView } from "./components/customer/CustomerHomeView";
-import { TrackOrderView } from "./components/customer/TrackOrderView";
-import { ReturnsRefundsView } from "./components/customer/ReturnsRefundsView";
-import { AiAssistantView } from "./components/customer/AiAssistantView";
+import type { SortOption } from "./components/customer/CategoryFilter";
+import type { AdminTab } from "./components/admin/AdminSidebar";
 
-// Admin Panel Components
-import { AdminSidebar, type AdminTab } from "./components/admin/AdminSidebar";
-import { AdminDashboard } from "./components/admin/AdminDashboard";
-import { TicketQueueView } from "./components/admin/TicketQueueView";
-import { OrderRegistryView } from "./components/admin/OrderRegistryView";
-import { KnowledgeBaseView } from "./components/admin/KnowledgeBaseView";
-import { TelephonyVoiceView } from "./components/admin/TelephonyVoiceView";
-import { CrmInboxView } from "./components/admin/CrmInboxView";
-import { CrmCustomersView } from "./components/admin/CrmCustomersView";
-import { CrmAiConversationsView } from "./components/admin/CrmAiConversationsView";
-import { CrmReturnsRefundsView } from "./components/admin/CrmReturnsRefundsView";
-import { CrmAnalyticsView } from "./components/admin/CrmAnalyticsView";
-import { CrmSettingsView } from "./components/admin/CrmSettingsView";
+// Code-split dynamic views & heavy interactive drawers for sub-second FCP
+const CategoryFilter = React.lazy(() => import("./components/customer/CategoryFilter").then(m => ({ default: m.CategoryFilter })));
+const CartDrawer = React.lazy(() => import("./components/customer/CartDrawer").then(m => ({ default: m.CartDrawer })));
+const ProductDetailsModal = React.lazy(() => import("./components/customer/ProductDetailsModal").then(m => ({ default: m.ProductDetailsModal })));
+const CustomerDashboard = React.lazy(() => import("./components/customer/CustomerDashboard").then(m => ({ default: m.CustomerDashboard })));
+const FloatingAiChat = React.lazy(() => import("./components/customer/FloatingAiChat").then(m => ({ default: m.FloatingAiChat })));
+const TrackOrderView = React.lazy(() => import("./components/customer/TrackOrderView").then(m => ({ default: m.TrackOrderView })));
+const ReturnsRefundsView = React.lazy(() => import("./components/customer/ReturnsRefundsView").then(m => ({ default: m.ReturnsRefundsView })));
+const AiAssistantView = React.lazy(() => import("./components/customer/AiAssistantView").then(m => ({ default: m.AiAssistantView })));
+const CustomerTicketChatModal = React.lazy(() => import("./components/customer/CustomerTicketChatModal").then(m => ({ default: m.CustomerTicketChatModal })));
+
+// Admin Panel Components (Dynamically imported on admin access)
+const AdminSidebar = React.lazy(() => import("./components/admin/AdminSidebar").then(m => ({ default: m.AdminSidebar })));
+const AdminDashboard = React.lazy(() => import("./components/admin/AdminDashboard").then(m => ({ default: m.AdminDashboard })));
+const TicketQueueView = React.lazy(() => import("./components/admin/TicketQueueView").then(m => ({ default: m.TicketQueueView })));
+const OrderRegistryView = React.lazy(() => import("./components/admin/OrderRegistryView").then(m => ({ default: m.OrderRegistryView })));
+const KnowledgeBaseView = React.lazy(() => import("./components/admin/KnowledgeBaseView").then(m => ({ default: m.KnowledgeBaseView })));
+const TelephonyVoiceView = React.lazy(() => import("./components/admin/TelephonyVoiceView").then(m => ({ default: m.TelephonyVoiceView })));
+const CrmInboxView = React.lazy(() => import("./components/admin/CrmInboxView").then(m => ({ default: m.CrmInboxView })));
+const CrmCustomersView = React.lazy(() => import("./components/admin/CrmCustomersView").then(m => ({ default: m.CrmCustomersView })));
+const CrmAiConversationsView = React.lazy(() => import("./components/admin/CrmAiConversationsView").then(m => ({ default: m.CrmAiConversationsView })));
+const CrmReturnsRefundsView = React.lazy(() => import("./components/admin/CrmReturnsRefundsView").then(m => ({ default: m.CrmReturnsRefundsView })));
+const CrmAnalyticsView = React.lazy(() => import("./components/admin/CrmAnalyticsView").then(m => ({ default: m.CrmAnalyticsView })));
+const CrmSettingsView = React.lazy(() => import("./components/admin/CrmSettingsView").then(m => ({ default: m.CrmSettingsView })));
 import { getProductEnhancement } from "./utils/productData";
+
+// Immediate Static Fallback Catalog for Millisecond LCP
+const INITIAL_PRODUCTS: Product[] = [
+  {
+    _id: "prd-003-seed",
+    sku: "PRD-003",
+    name: "Ergonomic Running Shoes",
+    category: "Footwear",
+    price: 2199,
+    stock: 65,
+    rating: 4.7,
+    description: "Lightweight and breathable athletic running shoes with responsive foam cushioning for everyday comfort.",
+    active: true,
+  },
+  {
+    _id: "prd-002-seed",
+    sku: "PRD-002",
+    name: "Everyday Smart Watch",
+    category: "Wearables",
+    price: 3999,
+    stock: 28,
+    rating: 4.6,
+    description: "Sleek fitness tracking smartwatch with AMOLED display, heart rate monitor, and 7-day battery life.",
+    active: true,
+  },
+  {
+    _id: "prd-001-seed",
+    sku: "PRD-001",
+    name: "Studio Wireless Headphones",
+    category: "Electronics",
+    price: 2499,
+    stock: 42,
+    rating: 4.8,
+    description: "Over-ear noise-cancelling wireless Bluetooth headphones with 30-hour battery life and fast USB-C charging.",
+    active: true,
+  },
+  {
+    _id: "prd-004-seed",
+    sku: "PRD-004",
+    name: "Classic Denim Jacket",
+    category: "Apparel",
+    price: 1899,
+    stock: 19,
+    rating: 4.5,
+    description: "Timeless vintage wash denim jacket made from 100% durable cotton with button closure.",
+    active: true,
+  },
+  {
+    _id: "prd-005-seed",
+    sku: "PRD-005",
+    name: "Waterproof Laptop Backpack",
+    category: "Accessories",
+    price: 1499,
+    stock: 54,
+    rating: 4.9,
+    description: "Weather-resistant 25L daily commuter backpack with dedicated padded sleeve for up to 16-inch laptops.",
+    active: true,
+  },
+  {
+    _id: "prd-006-seed",
+    sku: "PRD-006",
+    name: "Mechanical Gaming Keyboard",
+    category: "Electronics",
+    price: 4299,
+    stock: 15,
+    rating: 4.8,
+    description: "Tenkeyless mechanical keyboard with customizable RGB backlighting and durable tactile blue switches.",
+    active: true,
+  },
+];
+
+const ViewLoader = () => (
+  <div className="flex-1 flex items-center justify-center p-12 text-xs opacity-60">
+    <div className="flex items-center gap-2 animate-pulse">
+      <Sparkles className="w-4 h-4 text-amber-400" />
+      <span>Loading view...</span>
+    </div>
+  </div>
+);
 
 import {
   ShoppingBag,
@@ -227,8 +311,9 @@ const AuthView = () => {
         <form onSubmit={handleSubmit} className="space-y-3">
           {isRegister && (
             <div>
-              <label className="block text-xs font-semibold mb-1 opacity-80">Full Name</label>
+              <label htmlFor="auth-name" className="block text-xs font-semibold mb-1 opacity-80">Full Name</label>
               <input
+                id="auth-name"
                 type="text"
                 required
                 value={name}
@@ -240,8 +325,9 @@ const AuthView = () => {
           )}
 
           <div>
-            <label className="block text-xs font-semibold mb-1 opacity-80">Email Address</label>
+            <label htmlFor="auth-email" className="block text-xs font-semibold mb-1 opacity-80">Email Address</label>
             <input
+              id="auth-email"
               type="email"
               required
               value={email}
@@ -252,8 +338,9 @@ const AuthView = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold mb-1 opacity-80">Password</label>
+            <label htmlFor="auth-password" className="block text-xs font-semibold mb-1 opacity-80">Password</label>
             <input
+              id="auth-password"
               type="password"
               required
               value={password}
@@ -266,8 +353,9 @@ const AuthView = () => {
           {isRegister && (
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-xs font-semibold mb-1 opacity-80">Role</label>
+                <label htmlFor="auth-role" className="block text-xs font-semibold mb-1 opacity-80">Role</label>
                 <select
+                  id="auth-role"
                   value={role}
                   onChange={(e) => setRole(e.target.value as UserRole)}
                   className={`w-full rounded-xl px-2 py-2 text-xs focus:outline-none ${t.input}`}
@@ -279,8 +367,9 @@ const AuthView = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-semibold mb-1 opacity-80">Language</label>
+                <label htmlFor="auth-language" className="block text-xs font-semibold mb-1 opacity-80">Language</label>
                 <select
+                  id="auth-language"
                   value={language}
                   onChange={(e) => setLanguage(e.target.value as "en" | "hi" | "hinglish")}
                   className={`w-full rounded-xl px-2 py-2 text-xs focus:outline-none ${t.input}`}
@@ -371,8 +460,17 @@ const MainWorkspace = () => {
   const [adminTab, setAdminTab] = useState<AdminTab>("dashboard");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // Core Data
-  const [products, setProducts] = useState<Product[]>([]);
+  // Core Data: Instant fallback catalog for sub-second FCP & LCP
+  const [products, setProducts] = useState<Product[]>(() => {
+    try {
+      const cached = localStorage.getItem("shopease_cached_products");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return INITIAL_PRODUCTS;
+  });
   const [productsLoading, setProductsLoading] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
   const [, setOrdersLoading] = useState(false);
@@ -389,17 +487,51 @@ const MainWorkspace = () => {
   const [newInitialMsg, setNewInitialMsg] = useState("");
   const [ticketSubmitting, setTicketSubmitting] = useState(false);
 
+  // Customer Live Ticket Chat Modal State
+  const [chatTicket, setChatTicket] = useState<Ticket | null>(null);
+  const [isTicketChatOpen, setIsTicketChatOpen] = useState(false);
+
+  const handleOpenTicketChat = (ticketOrId: Ticket | string) => {
+    if (typeof ticketOrId === "object" && ticketOrId) {
+      setChatTicket(ticketOrId);
+      setIsTicketChatOpen(true);
+    } else if (typeof ticketOrId === "string") {
+      const found = tickets.find(
+        (t) => t._id === ticketOrId || t.ticketNumber === ticketOrId
+      );
+      if (found) {
+        setChatTicket(found);
+        setIsTicketChatOpen(true);
+      } else {
+        api.tickets
+          .getById(ticketOrId)
+          .then((res) => {
+            if (res.ticket) {
+              setChatTicket(res.ticket);
+              setIsTicketChatOpen(true);
+            }
+          })
+          .catch((err) => console.error("Ticket lookup error", err));
+      }
+    }
+  };
+
   // Sync Cart to localStorage
   useEffect(() => {
     localStorage.setItem("shopease_cart", JSON.stringify(cart));
   }, [cart]);
 
-  // Load Products
+  // Load Products (with background caching for subsequent instant loads)
   const loadProducts = async () => {
     setProductsLoading(true);
     try {
       const res = await api.products.list();
-      setProducts(res.data.products);
+      if (res.data?.products?.length) {
+        setProducts(res.data.products);
+        try {
+          localStorage.setItem("shopease_cached_products", JSON.stringify(res.data.products));
+        } catch {}
+      }
     } catch (err) {
       console.error("Failed to load products", err);
     } finally {
@@ -443,10 +575,42 @@ const MainWorkspace = () => {
     }
   };
 
+  // Priority 1: Load Products immediately for instant storefront LCP
   useEffect(() => {
     loadProducts();
-    loadOrders();
-    loadTickets();
+  }, []);
+
+  // Priority 2: Fetch Orders & Tickets contextually when entering respective views or admin panel
+  useEffect(() => {
+    if (panelMode === "admin" || ["orders", "track", "returns", "dashboard"].includes(customerView)) {
+      loadOrders();
+    }
+  }, [panelMode, customerView]);
+
+  useEffect(() => {
+    if (panelMode === "admin" || ["support", "dashboard"].includes(customerView)) {
+      loadTickets();
+    }
+  }, [panelMode, customerView]);
+
+  // Priority 3: Non-blocking background pre-warm on idle after initial paint
+  useEffect(() => {
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      const handle = (window as any).requestIdleCallback(
+        () => {
+          loadOrders();
+          loadTickets();
+        },
+        { timeout: 3500 }
+      );
+      return () => (window as any).cancelIdleCallback(handle);
+    } else {
+      const timer = setTimeout(() => {
+        loadOrders();
+        loadTickets();
+      }, 2500);
+      return () => clearTimeout(timer);
+    }
   }, [panelMode]);
 
   // Cart Handlers
@@ -647,22 +811,24 @@ const MainWorkspace = () => {
                     </span>
                   </div>
 
-                  <CategoryFilter
-                    categories={categoriesList}
-                    selectedCategory={selectedCategory}
-                    onSelectCategory={setSelectedCategory}
-                    sortBy={sortBy}
-                    onSortChange={setSortBy}
-                    inStockOnly={inStockOnly}
-                    onToggleInStock={setInStockOnly}
-                    priceRange={priceRange}
-                    onSelectPriceRange={setPriceRange}
-                    minRating={minRating}
-                    onSelectMinRating={setMinRating}
-                    minDiscount={minDiscount}
-                    onSelectMinDiscount={setMinDiscount}
-                    onResetFilters={handleResetCustomerFilters}
-                  />
+                  <React.Suspense fallback={<div className="h-14 rounded-2xl bg-current/5 animate-pulse my-2" />}>
+                    <CategoryFilter
+                      categories={categoriesList}
+                      selectedCategory={selectedCategory}
+                      onSelectCategory={setSelectedCategory}
+                      sortBy={sortBy}
+                      onSortChange={setSortBy}
+                      inStockOnly={inStockOnly}
+                      onToggleInStock={setInStockOnly}
+                      priceRange={priceRange}
+                      onSelectPriceRange={setPriceRange}
+                      minRating={minRating}
+                      onSelectMinRating={setMinRating}
+                      minDiscount={minDiscount}
+                      onSelectMinDiscount={setMinDiscount}
+                      onResetFilters={handleResetCustomerFilters}
+                    />
+                  </React.Suspense>
 
                   {/* Products Grid */}
                   {productsLoading ? (
@@ -704,114 +870,99 @@ const MainWorkspace = () => {
               </div>
             )}
 
-            {customerView === "dashboard" && (
-              <CustomerDashboard
-                initialTab="overview"
-                onOpenAiWithOrder={(orderNum) =>
-                  handleOpenAiWithContext(`Where is my order ${orderNum} right now?`)
-                }
-                onRaiseTicket={() => setShowNewTicketModal(true)}
-                onOpenTicketInChat={(tkt) =>
-                  handleOpenAiWithContext(
-                    `Give me a live status update on support ticket ${tkt.ticketNumber}: "${tkt.subject}".`
-                  )
-                }
-                onAskAiAboutPolicy={(query) => handleOpenAiWithContext(query)}
-                onNavigateToView={(view) => setCustomerView(view)}
-              />
-            )}
+            <React.Suspense fallback={<ViewLoader />}>
+              {customerView === "dashboard" && (
+                <CustomerDashboard
+                  initialTab="overview"
+                  onOpenAiWithOrder={(orderNum) =>
+                    handleOpenAiWithContext(`Where is my order ${orderNum} right now?`)
+                  }
+                  onRaiseTicket={() => setShowNewTicketModal(true)}
+                  onOpenTicketInChat={handleOpenTicketChat}
+                  onAskAiAboutPolicy={(query) => handleOpenAiWithContext(query)}
+                  onNavigateToView={(view) => setCustomerView(view)}
+                />
+              )}
+            </React.Suspense>
 
-            {customerView === "orders" && (
-              <CustomerDashboard
-                initialTab="orders"
-                onOpenAiWithOrder={(orderNum) =>
-                  handleOpenAiWithContext(`Where is my order ${orderNum} right now?`)
-                }
-                onRaiseTicket={() => setShowNewTicketModal(true)}
-                onOpenTicketInChat={(tkt) =>
-                  handleOpenAiWithContext(
-                    `Give me a live status update on support ticket ${tkt.ticketNumber}: "${tkt.subject}".`
-                  )
-                }
-                onAskAiAboutPolicy={(query) => handleOpenAiWithContext(query)}
-                onNavigateToView={(view) => setCustomerView(view)}
-              />
-            )}
+            <React.Suspense fallback={<ViewLoader />}>
+              {customerView === "orders" && (
+                <CustomerDashboard
+                  initialTab="orders"
+                  onOpenAiWithOrder={(orderNum) =>
+                    handleOpenAiWithContext(`Where is my order ${orderNum} right now?`)
+                  }
+                  onRaiseTicket={() => setShowNewTicketModal(true)}
+                  onOpenTicketInChat={handleOpenTicketChat}
+                  onAskAiAboutPolicy={(query) => handleOpenAiWithContext(query)}
+                  onNavigateToView={(view) => setCustomerView(view)}
+                />
+              )}
 
-            {customerView === "track" && (
-              <TrackOrderView
-                orders={orders}
-                onAskAiAboutOrder={(orderNum) =>
-                  handleOpenAiWithContext(`Where is my order ${orderNum} right now?`)
-                }
-              />
-            )}
+              {customerView === "track" && (
+                <TrackOrderView
+                  orders={orders}
+                  onAskAiAboutOrder={(orderNum) =>
+                    handleOpenAiWithContext(`Where is my order ${orderNum} right now?`)
+                  }
+                />
+              )}
 
-            {customerView === "assistant" && (
-              <AiAssistantView
-                orders={orders}
-                initialQuery={aiChatQuery}
-                onAddToCart={(prod) => handleAddToCart(prod, 1)}
-              />
-            )}
+              {customerView === "assistant" && (
+                <AiAssistantView
+                  orders={orders}
+                  initialQuery={aiChatQuery}
+                  onAddToCart={(prod) => handleAddToCart(prod, 1)}
+                  onOpenTicketModal={handleOpenTicketChat}
+                />
+              )}
 
-            {customerView === "returns" && (
-              <ReturnsRefundsView
-                orders={orders}
-                onOpenAiWithReturnQuery={(query) => handleOpenAiWithContext(query)}
-              />
-            )}
+              {customerView === "returns" && (
+                <ReturnsRefundsView
+                  orders={orders}
+                  onOpenAiWithReturnQuery={(query) => handleOpenAiWithContext(query)}
+                />
+              )}
 
-            {customerView === "support" && (
-              <CustomerDashboard
-                initialTab="tickets"
-                onOpenAiWithOrder={(orderNum) =>
-                  handleOpenAiWithContext(`Where is my order ${orderNum} right now?`)
-                }
-                onRaiseTicket={() => setShowNewTicketModal(true)}
-                onOpenTicketInChat={(tkt) =>
-                  handleOpenAiWithContext(
-                    `Give me a live status update on support ticket ${tkt.ticketNumber}: "${tkt.subject}".`
-                  )
-                }
-                onAskAiAboutPolicy={(query) => handleOpenAiWithContext(query)}
-                onNavigateToView={(view) => setCustomerView(view)}
-              />
-            )}
+              {customerView === "support" && (
+                <CustomerDashboard
+                  initialTab="tickets"
+                  onOpenAiWithOrder={(orderNum) =>
+                    handleOpenAiWithContext(`Where is my order ${orderNum} right now?`)
+                  }
+                  onRaiseTicket={() => setShowNewTicketModal(true)}
+                  onOpenTicketInChat={handleOpenTicketChat}
+                  onAskAiAboutPolicy={(query) => handleOpenAiWithContext(query)}
+                  onNavigateToView={(view) => setCustomerView(view)}
+                />
+              )}
 
-            {customerView === "knowledge" && (
-              <CustomerDashboard
-                initialTab="knowledge"
-                onOpenAiWithOrder={(orderNum) =>
-                  handleOpenAiWithContext(`Where is my order ${orderNum} right now?`)
-                }
-                onRaiseTicket={() => setShowNewTicketModal(true)}
-                onOpenTicketInChat={(tkt) =>
-                  handleOpenAiWithContext(
-                    `Give me a live status update on support ticket ${tkt.ticketNumber}: "${tkt.subject}".`
-                  )
-                }
-                onAskAiAboutPolicy={(query) => handleOpenAiWithContext(query)}
-                onNavigateToView={(view) => setCustomerView(view)}
-              />
-            )}
+              {customerView === "knowledge" && (
+                <CustomerDashboard
+                  initialTab="knowledge"
+                  onOpenAiWithOrder={(orderNum) =>
+                    handleOpenAiWithContext(`Where is my order ${orderNum} right now?`)
+                  }
+                  onRaiseTicket={() => setShowNewTicketModal(true)}
+                  onOpenTicketInChat={handleOpenTicketChat}
+                  onAskAiAboutPolicy={(query) => handleOpenAiWithContext(query)}
+                  onNavigateToView={(view) => setCustomerView(view)}
+                />
+              )}
 
-            {customerView === "profile" && (
-              <CustomerDashboard
-                initialTab="profile"
-                onOpenAiWithOrder={(orderNum) =>
-                  handleOpenAiWithContext(`Where is my order ${orderNum} right now?`)
-                }
-                onRaiseTicket={() => setShowNewTicketModal(true)}
-                onOpenTicketInChat={(tkt) =>
-                  handleOpenAiWithContext(
-                    `Give me a live status update on support ticket ${tkt.ticketNumber}: "${tkt.subject}".`
-                  )
-                }
-                onAskAiAboutPolicy={(query) => handleOpenAiWithContext(query)}
-                onNavigateToView={(view) => setCustomerView(view)}
-              />
-            )}
+              {customerView === "profile" && (
+                <CustomerDashboard
+                  initialTab="profile"
+                  onOpenAiWithOrder={(orderNum) =>
+                    handleOpenAiWithContext(`Where is my order ${orderNum} right now?`)
+                  }
+                  onRaiseTicket={() => setShowNewTicketModal(true)}
+                  onOpenTicketInChat={handleOpenTicketChat}
+                  onAskAiAboutPolicy={(query) => handleOpenAiWithContext(query)}
+                  onNavigateToView={(view) => setCustomerView(view)}
+                />
+              )}
+            </React.Suspense>
               {/* Footer inside scrollable customer main */}
               <footer className={`border-t py-8 px-4 sm:px-6 lg:px-8 text-xs transition mt-12 ${t.divider} ${t.cardMuted}`}>
                 <div className="w-full max-w-[1600px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -851,41 +1002,54 @@ const MainWorkspace = () => {
             </main>
 
             {/* Product Details Modal with AI Contextual Q&A */}
-            <ProductDetailsModal
-              product={selectedProduct}
-              onClose={() => setSelectedProduct(null)}
-              onAddToCart={handleAddToCart}
-              onBuyNow={(prod, qty) => {
-                handleAddToCart(prod, qty);
-                setIsCartOpen(true);
-              }}
-              onAskAi={handleOpenAiWithContext}
-            />
+            <React.Suspense fallback={null}>
+              {selectedProduct && (
+                <ProductDetailsModal
+                  product={selectedProduct}
+                  onClose={() => setSelectedProduct(null)}
+                  onAddToCart={handleAddToCart}
+                  onBuyNow={(prod, qty) => {
+                    handleAddToCart(prod, qty);
+                    setIsCartOpen(true);
+                  }}
+                  onAskAi={handleOpenAiWithContext}
+                />
+              )}
+            </React.Suspense>
 
             {/* Cart Drawer */}
-            <CartDrawer
-              isOpen={isCartOpen}
-              onClose={() => setIsCartOpen(false)}
-              cart={cart}
-              onUpdateQuantity={handleUpdateCartQuantity}
-              onRemoveItem={handleRemoveCartItem}
-              onClearCart={handleClearCart}
-              onOrderCreated={() => {
-                loadOrders();
-                loadProducts();
-              }}
-              onOpenAiChatWithOrder={(orderNum) =>
-                handleOpenAiWithContext(`Where is my new order ${orderNum} right now?`)
-              }
-            />
+            <React.Suspense fallback={null}>
+              {isCartOpen && (
+                <CartDrawer
+                  isOpen={isCartOpen}
+                  onClose={() => setIsCartOpen(false)}
+                  cart={cart}
+                  onUpdateQuantity={handleUpdateCartQuantity}
+                  onRemoveItem={handleRemoveCartItem}
+                  onClearCart={handleClearCart}
+                  onOrderCreated={() => {
+                    loadOrders();
+                    loadProducts();
+                  }}
+                  onOpenAiChatWithOrder={(orderNum) =>
+                    handleOpenAiWithContext(`Where is my new order ${orderNum} right now?`)
+                  }
+                />
+              )}
+            </React.Suspense>
 
             {/* Floating AI Chat Assistant */}
-            <FloatingAiChat
-              isOpen={isAiChatOpen}
-              onToggle={() => setIsAiChatOpen(!isAiChatOpen)}
-              initialQuery={aiChatQuery}
-              onAddToCart={(prod) => handleAddToCart(prod, 1)}
-            />
+            <React.Suspense fallback={null}>
+              {(customerView === "home" || isAiChatOpen) && (
+                <FloatingAiChat
+                  isOpen={isAiChatOpen}
+                  onToggle={() => setIsAiChatOpen(!isAiChatOpen)}
+                  initialQuery={aiChatQuery}
+                  onAddToCart={(prod) => handleAddToCart(prod, 1)}
+                  onOpenTicketModal={handleOpenTicketChat}
+                />
+              )}
+            </React.Suspense>
           </div>
         </div>
       )}
@@ -896,15 +1060,17 @@ const MainWorkspace = () => {
       {panelMode === "admin" && (
         <div className="flex h-screen overflow-hidden">
           {/* Admin Sidebar Navigation */}
-          <AdminSidebar
-            activeTab={adminTab}
-            setActiveTab={setAdminTab}
-            ticketCount={tickets.filter((t) => t.status === "open").length}
-            orderCount={orders.length}
-            onSwitchToCustomerStore={() => setPanelMode("customer")}
-            isOpenMobile={isMobileSidebarOpen}
-            onCloseMobile={() => setIsMobileSidebarOpen(false)}
-          />
+          <React.Suspense fallback={<div className="w-20 md:w-64 h-full bg-current/5" />}>
+            <AdminSidebar
+              activeTab={adminTab}
+              setActiveTab={setAdminTab}
+              ticketCount={tickets.filter((t) => t.status === "open").length}
+              orderCount={orders.length}
+              onSwitchToCustomerStore={() => setPanelMode("customer")}
+              isOpenMobile={isMobileSidebarOpen}
+              onCloseMobile={() => setIsMobileSidebarOpen(false)}
+            />
+          </React.Suspense>
 
           {/* Admin Workspace Content View */}
           <main className="flex-1 flex flex-col overflow-hidden">
@@ -948,135 +1114,137 @@ const MainWorkspace = () => {
 
             {/* Dynamic Admin Body View */}
             <div className="flex-1 overflow-hidden">
-              {adminTab === "dashboard" && (
-                <AdminDashboard
-                  orders={orders}
-                  tickets={tickets}
-                  products={products}
-                  onNavigateToTab={setAdminTab}
-                />
-              )}
+              <React.Suspense fallback={<ViewLoader />}>
+                {adminTab === "dashboard" && (
+                  <AdminDashboard
+                    orders={orders}
+                    tickets={tickets}
+                    products={products}
+                    onNavigateToTab={setAdminTab}
+                  />
+                )}
 
-              {adminTab === "inbox" && (
-                <CrmInboxView
-                  tickets={tickets}
-                  orders={orders}
-                  onRefreshTickets={loadTickets}
-                />
-              )}
+                {adminTab === "inbox" && (
+                  <CrmInboxView
+                    tickets={tickets}
+                    orders={orders}
+                    onRefreshTickets={loadTickets}
+                  />
+                )}
 
-              {adminTab === "tickets" && (
-                <TicketQueueView
-                  tickets={tickets}
-                  onRefreshTickets={loadTickets}
-                  selectedTicket={selectedTicket}
-                  onSelectTicket={setSelectedTicket}
-                />
-              )}
+                {adminTab === "tickets" && (
+                  <TicketQueueView
+                    tickets={tickets}
+                    onRefreshTickets={loadTickets}
+                    selectedTicket={selectedTicket}
+                    onSelectTicket={setSelectedTicket}
+                  />
+                )}
 
-              {adminTab === "customers" && (
-                <CrmCustomersView
-                  orders={orders}
-                  tickets={tickets}
-                />
-              )}
+                {adminTab === "customers" && (
+                  <CrmCustomersView
+                    orders={orders}
+                    tickets={tickets}
+                  />
+                )}
 
-              {adminTab === "ai_conversations" && (
-                <CrmAiConversationsView />
-              )}
+                {adminTab === "ai_conversations" && (
+                  <CrmAiConversationsView />
+                )}
 
-              {adminTab === "orders" && (
-                <OrderRegistryView
-                  orders={orders}
-                  onRefreshOrders={loadOrders}
-                />
-              )}
+                {adminTab === "orders" && (
+                  <OrderRegistryView
+                    orders={orders}
+                    onRefreshOrders={loadOrders}
+                  />
+                )}
 
-              {adminTab === "returns" && (
-                <CrmReturnsRefundsView />
-              )}
+                {adminTab === "returns" && (
+                  <CrmReturnsRefundsView />
+                )}
 
-              {adminTab === "products" && (
-                <div className="p-6 space-y-4 max-w-7xl mx-auto overflow-y-auto h-full">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-xl font-bold flex items-center gap-2">
-                        <Package className={`w-5 h-5 ${t.accentText}`} />
-                        <span>Product Store Inventory</span>
-                      </h2>
-                      <p className="text-xs opacity-75">
-                        Manage active store SKUs, prices, categories, and warehouse inventory.
-                      </p>
+                {adminTab === "products" && (
+                  <div className="p-6 space-y-4 max-w-7xl mx-auto overflow-y-auto h-full">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-xl font-bold flex items-center gap-2">
+                          <Package className={`w-5 h-5 ${t.accentText}`} />
+                          <span>Product Store Inventory</span>
+                        </h2>
+                        <p className="text-xs opacity-75">
+                          Manage active store SKUs, prices, categories, and warehouse inventory.
+                        </p>
+                      </div>
+                      <button
+                        onClick={loadProducts}
+                        className={`text-xs font-bold hover:underline ${t.accentText}`}
+                      >
+                        Refresh Inventory
+                      </button>
                     </div>
-                    <button
-                      onClick={loadProducts}
-                      className={`text-xs font-bold hover:underline ${t.accentText}`}
-                    >
-                      Refresh Inventory
-                    </button>
-                  </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {products.map((p) => {
-                      const enh = p.sku ? getProductEnhancement(p.sku) : null;
-                      return (
-                        <div
-                          key={p._id}
-                          className={`p-4 rounded-2xl border flex flex-col justify-between overflow-hidden ${t.card}`}
-                        >
-                          {enh && (
-                            <div className="relative -mx-4 -mt-4 mb-3 h-36 bg-black/10 overflow-hidden">
-                              <img
-                                src={enh.image}
-                                alt={p.name}
-                                className="w-full h-full object-cover"
-                              />
-                              {enh.badge && (
-                                <span
-                                  className={`absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm ${t.badgeHighlight}`}
-                                >
-                                  {enh.badge}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {products.map((p) => {
+                        const enh = p.sku ? getProductEnhancement(p.sku) : null;
+                        return (
+                          <div
+                            key={p._id}
+                            className={`p-4 rounded-2xl border flex flex-col justify-between overflow-hidden ${t.card}`}
+                          >
+                            {enh && (
+                              <div className="relative -mx-4 -mt-4 mb-3 h-36 bg-black/10 overflow-hidden">
+                                <img
+                                  src={enh.image}
+                                  alt={p.name}
+                                  className="w-full h-full object-cover"
+                                />
+                                {enh.badge && (
+                                  <span
+                                    className={`absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm ${t.badgeHighlight}`}
+                                  >
+                                    {enh.badge}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                            <div>
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="font-mono text-[10px] opacity-60">{p.sku}</span>
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${t.badgeHighlight}`}>
+                                  {p.category}
                                 </span>
-                              )}
+                              </div>
+                              <h4 className="font-bold text-sm mb-1">{p.name}</h4>
+                              <p className="text-xs opacity-70 line-clamp-2 mb-3">{p.description}</p>
                             </div>
-                          )}
-                          <div>
-                            <div className="flex justify-between items-center mb-1">
-                              <span className="font-mono text-[10px] opacity-60">{p.sku}</span>
-                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${t.badgeHighlight}`}>
-                                {p.category}
+                            <div className="pt-2 border-t border-current/10 flex items-center justify-between">
+                              <span className={`font-extrabold text-sm ${t.accentText}`}>
+                                ₹{p.price.toLocaleString("en-IN")}
+                              </span>
+                              <span className="text-[11px] font-semibold opacity-80">
+                                Stock: {p.stock}
                               </span>
                             </div>
-                            <h4 className="font-bold text-sm mb-1">{p.name}</h4>
-                            <p className="text-xs opacity-70 line-clamp-2 mb-3">{p.description}</p>
                           </div>
-                          <div className="pt-2 border-t border-current/10 flex items-center justify-between">
-                            <span className={`font-extrabold text-sm ${t.accentText}`}>
-                              ₹{p.price.toLocaleString("en-IN")}
-                            </span>
-                            <span className="text-[11px] font-semibold opacity-80">
-                              Stock: {p.stock}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {adminTab === "knowledge" && <KnowledgeBaseView />}
+                {adminTab === "knowledge" && <KnowledgeBaseView />}
 
-              {adminTab === "analytics" && (
-                <CrmAnalyticsView
-                  orders={orders}
-                  tickets={tickets}
-                />
-              )}
+                {adminTab === "analytics" && (
+                  <CrmAnalyticsView
+                    orders={orders}
+                    tickets={tickets}
+                  />
+                )}
 
-              {adminTab === "calls" && <TelephonyVoiceView />}
+                {adminTab === "calls" && <TelephonyVoiceView />}
 
-              {adminTab === "settings" && <CrmSettingsView />}
+                {adminTab === "settings" && <CrmSettingsView />}
+              </React.Suspense>
             </div>
           </main>
         </div>
@@ -1177,6 +1345,18 @@ const MainWorkspace = () => {
           </div>
         </div>
       )}
+
+      {/* Customer Live Ticket Chat Modal with Agent */}
+      <React.Suspense fallback={null}>
+        {isTicketChatOpen && (
+          <CustomerTicketChatModal
+            ticket={chatTicket}
+            isOpen={isTicketChatOpen}
+            onClose={() => setIsTicketChatOpen(false)}
+            onTicketUpdated={loadTickets}
+          />
+        )}
+      </React.Suspense>
     </div>
   );
 };

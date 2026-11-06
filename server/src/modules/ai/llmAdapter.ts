@@ -8,10 +8,9 @@ import type {
   IntentAnalysis,
 } from "./aiTypes.js";
 import {
-  executeCancelOrder,
-  executeChangeAddress,
-  executeInitiateReturn,
-  executeIssueCompensation,
+  executeCancelApprovalRequest,
+  executeChangeAddressApprovalRequest,
+  executeTransferToAgent,
   executeProductSearch,
   executeGetInvoice,
 } from "./toolExecutor.js";
@@ -78,19 +77,42 @@ const synthesizeGroundedResponse = async (
     };
   }
 
-  // 3. Autonomous Order Cancellation Tool
+  // 2b. Order Creation & Payment Restriction (AI cannot make orders or payments)
+  if (intent === "order_payment_restriction") {
+    const text = isHinglish
+      ? "Security Policy: Main directly orders place ya payments process nahi kar sakta. Main sirf aapke account details, live order status aur store policies provide kar sakta hoon. Aap catalogue se item cart me add karke store checkout portal se payment complete kar sakte hain."
+      : isHindi
+      ? "सुरक्षा नीति: मैं सीधे आर्डर देने या भुगतान संसाधित करने के लिए अधिकृत नहीं हूँ। मैं केवल आपके खाते का विवरण, लाइव आर्डर स्थिति और स्टोर नीतियां प्रदान कर सकता हूँ। आप स्टोर कैटलॉग से उत्पाद चुनकर चेकआउट के माध्यम से सुरक्षित भुगतान कर सकते हैं।"
+      : "For your security, I cannot place orders or process payments directly. As an AI assistant, I only provide your account details, live order status, and policy guidance. You can select items from the Store Catalogue, add them to your cart, and complete payment securely via our checkout gateway.";
+
+    return {
+      replyText: text,
+      language,
+      intent,
+      confidence: 0.98,
+      groundedSources: ["Security Guardrails"],
+      isEscalated: false,
+      agentThoughtProcess: [
+        "🧠 Intent Classified: order_payment_restriction",
+        "🛡️ Financial & State Guardrail: AI is read-only and prohibited from executing monetary or checkout transactions",
+        "ℹ️ Directed customer to secure storefront cart checkout",
+      ],
+    };
+  }
+
+  // 3. Order Cancellation Approval Request (AI cannot cancel directly; asks for human approval)
   if (intent === "cancel_order") {
     const targetOrder =
       analysis?.extractedOrderNumber || context.orderData?.orderNumber || "ORD-1001";
 
-    const result = await executeCancelOrder(targetOrder, customerId || "");
+    const result = await executeCancelApprovalRequest(targetOrder, customerId || "");
 
     return {
       replyText: isHinglish
-        ? `Order **${targetOrder}** ke liye: ${result.message}`
+        ? `Main directly orders cancel nahi kar sakta. Maine order **${targetOrder}** ke liye **Cancellation Approval Request** (Ticket: ${result.data.ticketNumber}) submit kar di hai. Humari support specialist Priya Sharma ise review karke approve karengi.`
         : isHindi
-        ? `आर्डर **${targetOrder}**: ${result.message}`
-        : `Order **${targetOrder}**: ${result.message}`,
+        ? `मैं सीधे आर्डर रद्द नहीं कर सकता। मैंने आर्डर **${targetOrder}** के लिए **रद्दीकरण अनुमोदन अनुरोध** (Ticket: ${result.data.ticketNumber}) दर्ज कर दिया है। हमारी सहायता विशेषज्ञ प्रिया शर्मा इसकी समीक्षा करके इसे अनुमोदित करेंगी।`
+        : `I cannot cancel orders or process refunds directly. I have forwarded an official **Cancellation Approval Request** (Ticket: ${result.data.ticketNumber}) for order **${targetOrder}** to our human support team. Support Specialist Priya Sharma has been notified to review and approve your cancellation.`,
       language,
       intent,
       confidence: 0.96,
@@ -98,31 +120,30 @@ const synthesizeGroundedResponse = async (
       isEscalated: false,
       agentThoughtProcess: [
         `🧠 Intent Classified: cancel_order (96% confidence)`,
-        `🔍 DB Lookup: Verifying cancellation eligibility and status for ${targetOrder}`,
-        `⚡ Tool Invoked: executeCancelOrder("${targetOrder}")`,
-        `💳 Refund Gateway: Scheduled instant reimbursement to original payment mode`,
-        `📝 Audit Log: Persisted autonomous cancellation event`,
+        `🛡️ Security Guardrail: AI cannot cancel orders or disburse funds autonomously`,
+        `⚡ Approval Workflow: Created cancellation approval ticket for human specialist (${result.data.ticketNumber})`,
+        `📡 Notification: Alerted staff agent Priya Sharma for approval in CRM queue`,
       ],
       actionPayload: {
-        type: "order_cancelled",
+        type: "cancellation_approval_request",
         data: result.data,
       },
     };
   }
 
-  // 4. Autonomous Address Modification Tool
+  // 4. Address Modification Approval Request (AI cannot modify directly; asks for human approval)
   if (intent === "change_address") {
     const targetOrder =
       analysis?.extractedOrderNumber || context.orderData?.orderNumber || "ORD-1001";
 
-    const result = await executeChangeAddress(targetOrder, userMessage, customerId || "");
+    const result = await executeChangeAddressApprovalRequest(targetOrder, userMessage, customerId || "");
 
     return {
       replyText: isHinglish
-        ? `Delivery address update for **${targetOrder}**: ${result.message}`
+        ? `Main directly carrier route modify nahi kar sakta. Maine order **${targetOrder}** ke naye address ke liye **Address Change Approval Request** (Ticket: ${result.data.ticketNumber}) bhej di hai. Humari operations team ise verify karke approve karegi.`
         : isHindi
-        ? `आर्डर **${targetOrder}** का पता अपडेट किया गया: ${result.message}`
-        : `Delivery address update for **${targetOrder}**: ${result.message}`,
+        ? `मैं सीधे डिलीवरी पते में बदलाव नहीं कर सकता। मैंने आर्डर **${targetOrder}** के लिए **पता परिवर्तन अनुमोदन अनुरोध** (Ticket: ${result.data.ticketNumber}) भेज दिया है। हमारी टीम इसे सत्यापित करके अनुमोदित करेगी।`
+        : `I cannot directly modify delivery routes in the carrier system. I have submitted an **Address Change Approval Request** (Ticket: ${result.data.ticketNumber}) for order **${targetOrder}**. Our human operations team will review and approve the re-routing with ${result.data.carrier || "Delhivery Express"}.`,
       language,
       intent,
       confidence: 0.93,
@@ -130,12 +151,12 @@ const synthesizeGroundedResponse = async (
       isEscalated: false,
       agentThoughtProcess: [
         `🧠 Intent Classified: change_address (93% confidence)`,
-        `🔍 Order Verification: Checking delivery milestone state for ${targetOrder}`,
-        `📍 Geocoding Tool: Parsing new destination address from prompt`,
-        `🔄 Sync: Updating MongoDB and notifying 3PL carrier dispatch route`,
+        `🛡️ Logistics Boundary: Carrier routing requires staff verification`,
+        `⚡ Approval Workflow: Created address change approval ticket (${result.data.ticketNumber})`,
+        `🚚 Partner Sync: Marked pending carrier re-route with ${result.data.carrier || "Delhivery Express"}`,
       ],
       actionPayload: {
-        type: "address_updated",
+        type: "address_change_approval_request",
         data: result.data,
       },
     };
@@ -173,32 +194,25 @@ const synthesizeGroundedResponse = async (
     };
   }
 
-  // 6. Autonomous Discount & Delay Compensation Voucher Tool
+  // 6. Discount & Compensation Policy Inquiry
   if (intent === "discount_compensation") {
-    const result = executeIssueCompensation(customerId || "", "Goodwill & Fast Resolution");
-
     return {
       replyText: isHinglish
-        ? `ShopEase par aapke experience ko behtar banane ke liye maine aapke account me **₹200 Care Voucher** (\`${result.data.couponCode}\`) issue kiya hai. Aap ise agle checkout par apply kar sakte hain.`
+        ? `Main directly discount codes ya refund compensation generate nahi kar sakta. Lekin humare human support agents delay ya issue hone par goodwill consideration review kar sakte hain. Kya main aapko Priya Sharma se connect karoon?`
         : isHindi
-        ? `ShopEase पर आपके अनुभव को बेहतर बनाने के लिए मैंने आपके खाते में **₹200 केयर वाउचर** (\`${result.data.couponCode}\`) जारी किया है।`
-        : `To ensure you have the best experience with ShopEase, I have authorized a **₹200 Care Voucher** (\`${result.data.couponCode}\`) for your account. You can apply it directly on your next checkout!`,
+        ? `मैं सीधे छूट कोड या मुआवजा उत्पन्न नहीं कर सकता। लेकिन हमारे सहायता प्रतिनिधि समीक्षा कर सकते हैं। क्या मैं आपको प्रतिनिधि से जोड़ूं?`
+        : `I cannot issue discounts or monetary compensations autonomously. However, our human support specialists can review your order for goodwill adjustments. Would you like me to connect you with an agent for review?`,
       language,
       intent,
       confidence: 0.91,
       groundedSources: ["Compensation & Goodwill Policy"],
       isEscalated: false,
-      suggestedAction: "apply_coupon",
+      suggestedAction: "agent_handoff",
       agentThoughtProcess: [
         `🧠 Intent Classified: discount_compensation`,
-        `🎁 Loyalty Engine: Checking eligible promotions and compensation guidelines`,
-        `🏷️ Voucher Tool: Generated authorized ₹200 apology code: ${result.data.couponCode}`,
-        `✅ Attached instant checkout voucher card`,
+        `🛡️ Financial Guardrail: AI is restricted from creating unauthorized coupons or credits`,
+        `👤 Action: Offered human specialist review for customer consideration`,
       ],
-      actionPayload: {
-        type: "compensation_coupon",
-        data: result.data,
-      },
     };
   }
 
@@ -442,28 +456,14 @@ const synthesizeGroundedResponse = async (
     };
   }
 
-  // 10. Return Request Response
+  // 10. Return Policy & Eligibility Information
   if (intent === "return_request") {
     const returnPolicy = context.relevantPolicies.find((p) => p.category === "returns");
-
-    let actionPayload;
-    if (context.orderData) {
-      const returnResult = await executeInitiateReturn(
-        context.orderData.orderNumber,
-        "7-Day Doorstep Replacement Request",
-        customerId || ""
-      );
-      actionPayload = {
-        type: "return_initiated" as const,
-        data: returnResult.data,
-      };
-    }
 
     const thought = [
       `🧠 Intent Classified: return_request (94% confidence)`,
       `📜 Policy RAG: Verified 7-day doorstep return & replacement terms`,
-      `🏷️ RMA Engine: Generated reverse pickup consignment`,
-      `🚚 Carrier Sync: Dispatched Delhivery reverse courier task`,
+      `📦 Customer Scope: Provided return eligibility and packaging guidelines`,
     ];
 
     if (isHinglish) {
@@ -476,7 +476,6 @@ const synthesizeGroundedResponse = async (
         isEscalated: false,
         suggestedAction: "create_return_ticket",
         agentThoughtProcess: thought,
-        actionPayload,
       };
     }
 
@@ -490,7 +489,6 @@ const synthesizeGroundedResponse = async (
         isEscalated: false,
         suggestedAction: "create_return_ticket",
         agentThoughtProcess: thought,
-        actionPayload,
       };
     }
 
@@ -503,7 +501,6 @@ const synthesizeGroundedResponse = async (
       isEscalated: false,
       suggestedAction: "create_return_ticket",
       agentThoughtProcess: thought,
-      actionPayload,
     };
   }
 
@@ -553,11 +550,13 @@ const synthesizeGroundedResponse = async (
 
   // 12. Human Escalation / Complaint
   if (intent === "human_escalation" || intent === "complaint") {
+    const transferResult = await executeTransferToAgent(customerId || "", userMessage);
+
     const thought = [
       `🧠 Intent Classified: ${intent}`,
       `🚨 Priority Monitor: Escalation trigger detected`,
       `📡 Socket Dispatch: Real-time handoff to staff agent Priya Sharma (CRM Queue)`,
-      `📝 Case Brief: Generated AI copilot briefing for human specialist`,
+      `📝 Case Brief: Created priority transfer ticket (${transferResult.data.ticketNumber})`,
     ];
 
     if (isHinglish) {
@@ -571,6 +570,10 @@ const synthesizeGroundedResponse = async (
         escalationReason: "Customer requested human support or raised complaint",
         suggestedAction: "agent_handoff",
         agentThoughtProcess: thought,
+        actionPayload: {
+          type: "agent_transfer",
+          data: transferResult.data,
+        },
       };
     }
 
@@ -585,6 +588,10 @@ const synthesizeGroundedResponse = async (
         escalationReason: "Customer requested human support or raised complaint",
         suggestedAction: "agent_handoff",
         agentThoughtProcess: thought,
+        actionPayload: {
+          type: "agent_transfer",
+          data: transferResult.data,
+        },
       };
     }
 
@@ -598,6 +605,82 @@ const synthesizeGroundedResponse = async (
       escalationReason: "Customer requested human support or raised complaint",
       suggestedAction: "agent_handoff",
       agentThoughtProcess: thought,
+      actionPayload: {
+        type: "agent_transfer",
+        data: transferResult.data,
+      },
+    };
+  }
+
+  // 12b. Problem Resolved Confirmation
+  if (intent === "issue_resolved") {
+    const text = isHinglish
+      ? "Yeh sunkar bahut accha laga ki aapka issue resolve ho gaya! 🎉 Agar aapko kisi aur order tracking, GST invoice download ya products me madad chahiye, toh batayein."
+      : isHindi
+      ? "यह जानकर बहुत प्रसन्नता हुई कि आपकी समस्या हल हो गई! 🎉 यदि आपको किसी अन्य आर्डर ट्रैकिंग, जीएसटी इनवॉइस या उत्पाद संबंधी सहायता चाहिए, तो कृपया बताएं।"
+      : "Glad to hear that your issue is resolved! 🎉 If there is anything else you need assistance with (tracking another order, downloading GST invoices, or exploring products), please let me know.";
+
+    return {
+      replyText: text,
+      language,
+      intent,
+      confidence: 0.95,
+      groundedSources: ["Customer Feedback Resolution"],
+      isEscalated: false,
+      agentThoughtProcess: [
+        "🧠 Intent Classified: issue_resolved",
+        "✅ Customer confirmed successful resolution",
+        "🌟 Session marked satisfied; offered follow-up support topics",
+      ],
+      actionPayload: {
+        type: "related_options",
+        data: {
+          context: "resolved",
+          options: [
+            { label: "📦 Track another order", query: "Where is my order ORD-1001 right now?" },
+            { label: "📄 Download GST Invoice", query: "Download tax invoice for ORD-1001" },
+            { label: "🎧 Explore Curated Products", query: "Recommend best wireless headphones under 5000 with warranty" },
+            { label: "❓ Store Policies & FAQ", query: "What is your 7-day electronics return policy?" },
+          ],
+        },
+      },
+    };
+  }
+
+  // 12c. Need More Help / Issue Not Resolved (Offer Related Options & Agent Connect)
+  if (intent === "need_more_help") {
+    const text = isHinglish
+      ? "Main samajh sakta hoon ki aapka issue abhi poori tarah solve nahi hua. Aapki madad ke liye ye related options uplabdh hain, ya aap seedhe humari support specialist Priya Sharma se connect karne ka anurodh kar sakte hain:"
+      : isHindi
+      ? "मैं समझ सकता हूँ कि आपकी समस्या का समाधान नहीं हो पाया। आपकी सहायता के लिए संबंधित विकल्प उपलब्ध हैं, या आप हमारी सहायता विशेषज्ञ प्रिया शर्मा से सीधे जुड़ सकते हैं:"
+      : "I understand this didn't fully resolve your issue. Here are some related options that may help you, or you can request to connect directly with our human support specialist Priya Sharma:";
+
+    return {
+      replyText: text,
+      language,
+      intent,
+      confidence: 0.92,
+      groundedSources: ["Customer Resolution Assistance"],
+      isEscalated: false,
+      agentThoughtProcess: [
+        "🧠 Intent Classified: need_more_help",
+        "⚠️ Customer signaled incomplete resolution",
+        "🔄 Formulated contextual related options and offered direct human agent transfer",
+      ],
+      actionPayload: {
+        type: "related_options",
+        data: {
+          context: "unresolved",
+          orderNumber: context.orderData?.orderNumber || "ORD-1001",
+          options: [
+            { label: "📍 Request Address Change", query: `Change delivery address for ${context.orderData?.orderNumber || "ORD-1001"} to Flat 204, Indiranagar, Bengaluru` },
+            { label: "📄 Download GST Invoice", query: `Download tax invoice for ${context.orderData?.orderNumber || "ORD-1001"}` },
+            { label: "❌ Request Order Cancellation", query: `Cancel my order ${context.orderData?.orderNumber || "ORD-1001"}` },
+            { label: "🛠️ Bluetooth & Audio Reset Guide", query: "My headphone bluetooth is not connecting, help me troubleshoot" },
+            { label: "👤 Connect with Support Agent", query: "Connect me to a real person right now, I want human support." },
+          ],
+        },
+      },
     };
   }
 
@@ -667,7 +750,11 @@ export const generateAiResponse = async (
   const apiKey = env.GEMINI_API_KEY || env.AI_PROVIDER_API_KEY;
 
   // Immediate defense against prompt injections regardless of LLM provider
-  if (intent === "prompt_injection" || intent === "unsupported_query") {
+  if (
+    intent === "prompt_injection" ||
+    intent === "unsupported_query" ||
+    intent === "order_payment_restriction"
+  ) {
     return synthesizeGroundedResponse(userMessage, language, intent, context, customerId, analysis);
   }
 

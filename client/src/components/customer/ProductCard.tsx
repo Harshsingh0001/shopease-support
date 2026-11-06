@@ -40,8 +40,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       <div>
         {/* Product Image Frame */}
         <div
+          role="button"
+          tabIndex={0}
+          aria-label={`View ${product.name} details`}
           onClick={() => onOpenDetails(product)}
-          className={`relative h-56 rounded-2xl flex items-center justify-center cursor-pointer overflow-hidden mb-4 transition-colors ${
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onOpenDetails(product);
+            }
+          }}
+          className={`relative h-56 rounded-2xl flex items-center justify-center cursor-pointer overflow-hidden mb-4 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
             t.isDark ? "bg-[#141412]" : "bg-[#f4f7f4]"
           }`}
         >
@@ -52,10 +61,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             </div>
           )}
 
-          {/* Real High-Resolution Studio Image */}
+          {/* Real Studio Image with Lazy Loading & Fixed Dimensions */}
           <img
-            src={imageUrl}
+            src={imageUrl.replace("w=800", "w=480").replace("q=80", "q=75")}
             alt={product.name}
+            loading="lazy"
+            decoding="async"
+            width="320"
+            height="224"
             onLoad={() => setImageLoaded(true)}
             className={`w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-108 ${
               imageLoaded ? "opacity-100" : "opacity-0"
@@ -68,6 +81,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           {/* Quick View Hover Pill */}
           <button
             type="button"
+            aria-label={`Quick view specifications for ${product.name}`}
             onClick={(e) => {
               e.stopPropagation();
               onOpenDetails(product);
@@ -151,20 +165,24 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         {/* Title */}
-        <h3
-          onClick={() => onOpenDetails(product)}
-          className="font-black text-sm sm:text-base leading-snug line-clamp-1 mb-1.5 cursor-pointer hover:underline transition-colors"
-        >
-          {product.name}
+        <h3 className="mb-1.5">
+          <button
+            type="button"
+            onClick={() => onOpenDetails(product)}
+            aria-label={`View details for ${product.name}`}
+            className="font-black text-sm sm:text-base leading-snug line-clamp-1 cursor-pointer hover:underline transition-colors text-left w-full"
+          >
+            {product.name}
+          </button>
         </h3>
 
         {/* Description snippet */}
-        <p className="text-xs opacity-70 line-clamp-2 mb-3 leading-relaxed">
+        <p className="text-xs opacity-75 line-clamp-2 mb-3 leading-relaxed">
           {product.description}
         </p>
 
         {/* Express Delivery Badge */}
-        <div className="flex items-center gap-1.5 text-[10px] font-semibold opacity-80 mb-3">
+        <div className="flex items-center gap-1.5 text-[10px] font-semibold opacity-85 mb-3">
           <Truck className="w-3 h-3 text-emerald-500 shrink-0" />
           <span>{enhancement.deliveryEstimate}</span>
         </div>
@@ -178,7 +196,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               ₹{product.price.toLocaleString("en-IN")}
             </span>
             {originalPrice > product.price && (
-              <span className="text-xs line-through opacity-45">
+              <span className="text-xs line-through opacity-70">
                 ₹{originalPrice.toLocaleString("en-IN")}
               </span>
             )}
@@ -204,6 +222,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             type="button"
             onClick={() => onAskAiAboutProduct(product)}
             title={`Ask AI: Is ${product.name} eligible for 7-day return & warranty?`}
+            aria-label={`Ask AI about ${product.name}`}
             className={`col-span-2 px-2.5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 border transition active:scale-95 ${
               t.isDark
                 ? "bg-[#23221e] hover:bg-[#2d2b24] text-[#f5e7bf] border-[#d9a83e]/30"
@@ -219,6 +238,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             type="button"
             onClick={() => onAddToCart(product)}
             disabled={product.stock <= 0}
+            aria-label={isAdded ? `${product.name} added to cart` : `Add ${product.name} to cart`}
             className={`col-span-3 px-3 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition active:scale-95 disabled:opacity-40 ${
               isAdded
                 ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30"

@@ -17,14 +17,31 @@ import voiceRoutes from "./routes/voiceRoutes.js";
 
 const app = express();
 
-// Security HTTP headers
-app.use(helmet());
+// Security HTTP headers with cross-origin resource policy enabled
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
 
-// Cross-Origin Resource Sharing
+// Cross-Origin Resource Sharing (supports both 5173, 5174, 4173 and all local dev ports)
 app.use(
   cors({
-    origin: env.CLIENT_URL,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+
+      // Allow any localhost / 127.0.0.1 on any port (5173, 5174, 4173, 3000, etc.)
+      const isLocal = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+      if (isLocal || origin === env.CLIENT_URL || env.NODE_ENV !== "production") {
+        return callback(null, true);
+      }
+
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
+    },
     credentials: true,
+    methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
   })
 );
 

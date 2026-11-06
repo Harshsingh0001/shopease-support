@@ -4,10 +4,46 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>client</title>
+    <title>ShopEase — Omnichannel E-Commerce &amp; Grounded AI Customer Support</title>
+    <meta
+      name="description"
+      content="ShopEase: Premium omnichannel electronics store with real-time Delhivery carrier telemetry, 7-day hassle-free doorstep returns, and grounded AI customer support."
+    />
+    <meta name="theme-color" content="#070705" />
+    <!-- Preconnect to external image hosts for instant LCP -->
+    <link rel="preconnect" href="https://images.unsplash.com" />
+    <link rel="dns-prefetch" href="https://images.unsplash.com" />
+    <!-- High-Priority Preload for LCP Hero Deal Product Image -->
+    <link
+      rel="preload"
+      as="image"
+      href="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=480&auto=format&fit=crop&q=75"
+      fetchpriority="high"
+    />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Instant First-Frame Paint Skeleton for Sub-Second FCP -->
+      <div style="min-height: 100vh; background: #0d0d0b; color: #f5e7bf; font-family: Inter, system-ui, sans-serif;">
+        <header style="height: 64px; border-bottom: 1px solid rgba(217,168,62,0.18); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; background: #11100c;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 36px; height: 36px; border-radius: 12px; background: #d9a83e; display: flex; align-items: center; justify-content: center; font-weight: 900; color: #17140d;">🛍️</div>
+            <span style="font-weight: 900; font-size: 18px; color: #ffffff;">ShopEase<span style="color: #d9a83e;">.ai</span></span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 11px; padding: 4px 10px; border-radius: 9999px; background: rgba(16,185,129,0.15); color: #86efac; border: 1px solid rgba(16,185,129,0.3); font-weight: 700;">🟢 Fast AI Platform</span>
+          </div>
+        </header>
+        <main style="max-width: 1400px; margin: 0 auto; padding: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 16px; margin-bottom: 24px;">
+            <div>
+              <h1 style="font-size: 22px; font-weight: 900; margin: 0; color: #ffffff;">Welcome to ShopEase<span style="color: #d9a83e;">.ai</span></h1>
+              <p style="font-size: 12px; opacity: 0.75; margin: 4px 0 0 0;">Omnichannel electronics store with grounded 24/7 AI support & express Delhivery tracking.</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

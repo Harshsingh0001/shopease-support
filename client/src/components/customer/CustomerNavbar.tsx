@@ -85,7 +85,7 @@ export const CustomerNavbar: React.FC<CustomerNavbarProps> = ({
       case "knowledge":
         return "Policies & FAQs";
       case "profile":
-        return "Delivery Addresses";
+        return "My Profile & Settings";
       default:
         return "Storefront";
     }
@@ -187,14 +187,17 @@ export const CustomerNavbar: React.FC<CustomerNavbarProps> = ({
               onClick={onOpenMobileSidebar}
               className="md:hidden p-2 rounded-xl border opacity-80 hover:opacity-100"
               title="Open Navigation Menu"
+              aria-label="Open Navigation Menu"
             >
               <Menu className="w-4 h-4" />
             </button>
           )}
 
-          <div
+          <button
+            type="button"
             onClick={() => setActiveView("home")}
-            className="flex items-center gap-2 cursor-pointer select-none shrink-0"
+            aria-label="ShopEase.ai Customer Storefront Home"
+            className="flex items-center gap-2 cursor-pointer select-none shrink-0 text-left focus:outline-none"
           >
             <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-bold ${t.sidebarBrand}`}>
               <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -207,7 +210,7 @@ export const CustomerNavbar: React.FC<CustomerNavbarProps> = ({
                 Customer Storefront
               </div>
             </div>
-          </div>
+          </button>
 
           <div className="hidden lg:flex items-center gap-1.5 text-xs opacity-60 ml-2 border-l pl-3 border-current/20">
             <span>Portal</span>
@@ -221,6 +224,7 @@ export const CustomerNavbar: React.FC<CustomerNavbarProps> = ({
           <div className="flex items-center rounded-xl border overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500">
             {categories.length > 0 && onSelectCategory && (
               <select
+                aria-label="Filter products by department"
                 value={selectedCategory}
                 onChange={(e) => {
                   onSelectCategory(e.target.value);
@@ -244,6 +248,7 @@ export const CustomerNavbar: React.FC<CustomerNavbarProps> = ({
               <input
                 type="text"
                 value={searchQuery}
+                aria-label="Search store products"
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
                   if (activeView !== "products") {
@@ -265,6 +270,7 @@ export const CustomerNavbar: React.FC<CustomerNavbarProps> = ({
             onClick={() => setShowMobileSearch(!showMobileSearch)}
             className="md:hidden p-2 rounded-xl border opacity-80 hover:opacity-100"
             title="Search Products"
+            aria-label="Search Products"
           >
             <Search className="w-4 h-4" />
           </button>
@@ -273,6 +279,7 @@ export const CustomerNavbar: React.FC<CustomerNavbarProps> = ({
           <button
             type="button"
             onClick={onOpenAiChat}
+            aria-label="Ask ShopEase AI support"
             className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition border ${
               t.isDark
                 ? "bg-[#382f1c] hover:bg-[#483d25] text-[#f5e7bf] border-[#d9a83e]/40"
@@ -287,6 +294,7 @@ export const CustomerNavbar: React.FC<CustomerNavbarProps> = ({
           <button
             type="button"
             onClick={toggleTheme}
+            aria-label={`Switch theme (Current: ${t.isDark ? "Premium Gold" : "Forest & Emerald"})`}
             title={`Switch theme (Current: ${t.isDark ? "Premium Gold" : "Forest & Emerald"})`}
             className={`p-2 rounded-xl border flex items-center justify-center transition shrink-0 ${t.secondaryButton}`}
           >
@@ -301,6 +309,7 @@ export const CustomerNavbar: React.FC<CustomerNavbarProps> = ({
           <button
             type="button"
             onClick={onOpenCart}
+            aria-label={`Shopping Cart (${cartCount} items)`}
             title="Open Shopping Cart"
             className={`relative p-2 rounded-xl flex items-center justify-center transition shrink-0 border ${t.secondaryButton}`}
           >
@@ -320,6 +329,7 @@ export const CustomerNavbar: React.FC<CustomerNavbarProps> = ({
           <button
             type="button"
             onClick={() => setActiveView("profile")}
+            aria-label="My Profile & Addresses"
             title="My Profile & Addresses"
             className={`p-2 rounded-xl border flex items-center justify-center transition shrink-0 ${
               activeView === "profile" ? t.primaryButton : t.secondaryButton
@@ -332,6 +342,7 @@ export const CustomerNavbar: React.FC<CustomerNavbarProps> = ({
           <button
             type="button"
             onClick={logout}
+            aria-label="Sign out of customer session"
             title="Sign out of customer session"
             className="p-2 opacity-60 hover:opacity-100 hover:text-rose-500 rounded-xl transition shrink-0"
           >
@@ -348,6 +359,7 @@ export const CustomerNavbar: React.FC<CustomerNavbarProps> = ({
             <input
               type="text"
               autoFocus
+              aria-label="Search products, headphones, smartwatches"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search products, headphones, smartwatches..."

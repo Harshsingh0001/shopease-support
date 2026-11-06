@@ -28,27 +28,54 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem("shopease_user");
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem("shopease_user");
+      if (!saved || saved === "undefined" || saved === "null") return null;
+      return JSON.parse(saved);
+    } catch {
+      localStorage.removeItem("shopease_user");
+      return null;
+    }
   });
-  const [token, setToken] = useState<string | null>(() =>
-    localStorage.getItem("shopease_token")
-  );
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [token, setToken] = useState<string | null>(() => {
+    const saved = localStorage.getItem("shopease_token");
+    if (!saved || saved === "undefined" || saved === "null") return null;
+    return saved;
+  });
+  // Fast FCP: Only block render if a token exists but no cached user is available to display
+  const [isLoading, setIsLoading] = useState<boolean>(() => {
+    try {
+      const savedToken = localStorage.getItem("shopease_token");
+      const savedUser = localStorage.getItem("shopease_user");
+      const hasValidToken = Boolean(savedToken && savedToken !== "undefined" && savedToken !== "null");
+      const hasValidUser = Boolean(savedUser && savedUser !== "undefined" && savedUser !== "null");
+      return hasValidToken && !hasValidUser;
+    } catch {
+      return false;
+    }
+  });
 
   // Validate token and hydrate user on load
   useEffect(() => {
     const initAuth = async () => {
       const storedToken = localStorage.getItem("shopease_token");
-      if (!storedToken) {
+      if (!storedToken || storedToken === "undefined" || storedToken === "null") {
+        localStorage.removeItem("shopease_token");
+        localStorage.removeItem("shopease_user");
+        setToken(null);
+        setUser(null);
         setIsLoading(false);
         return;
       }
 
       try {
         const response = await api.auth.getMe();
-        setUser(response.user);
-        localStorage.setItem("shopease_user", JSON.stringify(response.user));
+        if (response?.user) {
+          setUser(response.user);
+          localStorage.setItem("shopease_user", JSON.stringify(response.user));
+        } else {
+          throw new Error("Invalid user profile response");
+        }
       } catch {
         localStorage.removeItem("shopease_token");
         localStorage.removeItem("shopease_user");
@@ -64,10 +91,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     const res = await api.auth.login({ email, password });
-    localStorage.setItem("shopease_token", res.token);
-    localStorage.setItem("shopease_user", JSON.stringify(res.user));
-    setToken(res.token);
-    setUser(res.user);
+    if (res?.token) {
+      localStorage.setItem("shopease_token", res.token);
+      setToken(res.token);
+    }
+    if (res?.user) {
+      localStorage.setItem("shopease_user", JSON.stringify(res.user));
+      setUser(res.user);
+    }
   };
 
   const register = async (

@@ -161,6 +161,11 @@ export const CustomerSidebar: React.FC<CustomerSidebarProps> = ({
                     <button
                       type="button"
                       onClick={togglePin}
+                      aria-label={
+                        isPinned
+                          ? "Unpin sidebar"
+                          : "Pin sidebar open"
+                      }
                       title={
                         isPinned
                           ? "Unpin sidebar (auto-collapses on hover out)"
@@ -181,6 +186,7 @@ export const CustomerSidebar: React.FC<CustomerSidebarProps> = ({
                     <button
                       type="button"
                       onClick={onCloseMobile}
+                      aria-label="Close navigation sidebar"
                       className="p-1 rounded-lg opacity-70 hover:opacity-100"
                     >
                       <X className="w-5 h-5" />
@@ -190,16 +196,19 @@ export const CustomerSidebar: React.FC<CustomerSidebarProps> = ({
               </>
             ) : (
               <div className="flex flex-col items-center gap-2">
-                <div
+                <button
+                  type="button"
                   onClick={() => setActiveView("home")}
                   className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold shrink-0 cursor-pointer ${t.sidebarBrand}`}
+                  aria-label="ShopEase.ai Customer Portal Home"
                   title="ShopEase.ai Customer Portal"
                 >
                   <ShoppingBag className="w-5 h-5" />
-                </div>
+                </button>
                 <button
                   type="button"
                   onClick={togglePin}
+                  aria-label="Pin sidebar open"
                   title="Pin sidebar open"
                   className="p-1.5 rounded-lg opacity-60 hover:opacity-100 hover:bg-current/10 border"
                 >
@@ -343,6 +352,7 @@ export const CustomerSidebar: React.FC<CustomerSidebarProps> = ({
             <button
               type="button"
               onClick={toggleTheme}
+              aria-label={`Switch theme to ${theme === "dark" ? "Forest & Emerald" : "Premium Gold"}`}
               title={`Switch to ${theme === "dark" ? "Forest & Emerald" : "Premium Gold"}`}
               className={`w-10 h-10 mx-auto rounded-xl flex items-center justify-center transition border ${
                 t.isDark
@@ -379,7 +389,7 @@ export const CustomerSidebar: React.FC<CustomerSidebarProps> = ({
                   >
                     {user?.role === "customer" ? "Customer" : user?.role}
                   </span>
-                  <span className="text-[10px] opacity-60 uppercase font-mono">
+                  <span className="text-[10px] opacity-75 uppercase font-mono">
                     {user?.preferredLanguage || "EN"}
                   </span>
                 </div>
@@ -388,8 +398,9 @@ export const CustomerSidebar: React.FC<CustomerSidebarProps> = ({
               <button
                 type="button"
                 onClick={logout}
+                aria-label="Sign out of customer session"
                 title="Sign out of customer session"
-                className="p-1.5 opacity-60 hover:opacity-100 hover:text-rose-400 rounded-lg transition"
+                className="p-1.5 opacity-70 hover:opacity-100 hover:text-rose-400 rounded-lg transition"
               >
                 <LogOut className="w-4 h-4" />
               </button>
@@ -405,8 +416,9 @@ export const CustomerSidebar: React.FC<CustomerSidebarProps> = ({
               <button
                 type="button"
                 onClick={logout}
+                aria-label="Sign out of customer session"
                 title="Log out"
-                className="p-1.5 opacity-60 hover:opacity-100 hover:text-rose-400 rounded-lg transition"
+                className="p-1.5 opacity-70 hover:opacity-100 hover:text-rose-400 rounded-lg transition"
               >
                 <LogOut className="w-3.5 h-3.5" />
               </button>
