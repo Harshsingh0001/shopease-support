@@ -121,7 +121,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                   className={`text-[11px] font-semibold px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition hover:scale-105 active:scale-95 ${
                     t.isDark
                       ? "bg-[#23221e]/80 hover:bg-[#2e2c24] border-[#353229] text-[#f5e7bf]"
-                      : "bg-white/80 hover:bg-[#f3f7f4] border-[#e2e8e2] text-[#1f2923]"
+                      : "bg-[#9CABB4] hover:bg-[#8ca0ab] border-[#8396a1] text-[#141c22]"
                   }`}
                 >
                   <MessageSquare className="w-3 h-3 opacity-60" />
@@ -138,7 +138,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
             className={`rounded-3xl p-5 border shadow-2xl relative backdrop-blur-md overflow-hidden ${
               t.isDark
                 ? "bg-[#1c1b18]/90 border-[#353229]"
-                : "bg-white/95 border-[#e2e8e2]"
+                : "bg-[#9CABB4] border-[#8396a1] text-[#141c22]"
             }`}
           >
             {/* Top Bar of Preview Card */}
@@ -189,7 +189,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                   className={`max-w-[92%] p-3.5 rounded-2xl rounded-tl-xs space-y-2 border text-[11px] leading-relaxed shadow-md ${
                     t.isDark
                       ? "bg-[#23221e] border-[#d9a83e]/30 text-[#f5f4ef]"
-                      : "bg-white border-[#e2e8e2] text-[#1f2923]"
+                      : "bg-[#9CABB4] border-[#8396a1] text-[#141c22]"
                   }`}
                 >
                   <div className="flex items-center justify-between text-[10px] font-bold text-emerald-600">

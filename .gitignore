@@ -1,9 +1,8 @@
 node_modules/
 dist/
-.env
-.env.*
 !.env.example
 client/dist/
 client/.env
 client/.env.*
 !client/.env.example
+config.bat

@@ -187,11 +187,11 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 className={`w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition border ${
                   t.isDark
                     ? "bg-[#23221e] hover:bg-[#2c2a23] text-[#f5e7bf] border-[#353229]"
-                    : "bg-[#0e3b2c] hover:bg-[#15543f] text-[#f2f7f4] border-[#185a45]"
+                    : "bg-[#2f3b44] hover:bg-[#384652] text-[#F2F2EB] border-[#3f4f5c]"
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <ShoppingBag className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <ShoppingBag className="w-3.5 h-3.5 text-[#AB644B] shrink-0" />
                   <span className="truncate">Customer Storefront</span>
                 </div>
                 <ArrowLeft className="w-3.5 h-3.5 rotate-180 shrink-0" />
@@ -204,13 +204,14 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                   onSwitchToCustomerStore();
                 }}
                 title="Back to Customer Storefront"
+                aria-label="Back to Customer Storefront"
                 className={`w-10 h-10 mx-auto rounded-xl flex items-center justify-center transition border ${
                   t.isDark
                     ? "bg-[#23221e] hover:bg-[#2c2a23] text-[#f5e7bf] border-[#353229]"
-                    : "bg-[#0e3b2c] hover:bg-[#15543f] text-[#f2f7f4] border-[#185a45]"
+                    : "bg-[#2f3b44] hover:bg-[#384652] text-[#F2F2EB] border-[#3f4f5c]"
                 }`}
               >
-                <ShoppingBag className="w-4 h-4 text-emerald-400" />
+                <ShoppingBag className="w-4 h-4 text-[#AB644B]" />
               </button>
             )}
           </div>
@@ -234,6 +235,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                   if (onCloseMobile) onCloseMobile();
                 }}
                 title="Dashboard"
+                aria-label="Dashboard"
                 className={`flex items-center rounded-xl text-xs font-semibold transition ${
                   showFull
                     ? `w-full gap-2.5 px-3 py-2 ${
@@ -271,6 +273,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                   if (onCloseMobile) onCloseMobile();
                 }}
                 title="Inbox (3-Column Live Chat)"
+                aria-label="Inbox (3-Column Live Chat)"
                 className={`flex items-center rounded-xl text-xs font-semibold transition relative ${
                   showFull
                     ? `w-full justify-between px-3 py-2 ${
@@ -306,6 +309,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                   if (onCloseMobile) onCloseMobile();
                 }}
                 title={`Ticket Queue (${ticketCount} open)`}
+                aria-label={`Ticket Queue (${ticketCount} open)`}
                 className={`flex items-center rounded-xl text-xs font-semibold transition relative ${
                   showFull
                     ? `w-full justify-between px-3 py-2 ${
@@ -342,6 +346,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                   if (onCloseMobile) onCloseMobile();
                 }}
                 title="Customer 360"
+                aria-label="Customer 360"
                 className={`flex items-center rounded-xl text-xs font-semibold transition ${
                   showFull
                     ? `w-full gap-2.5 px-3 py-2 ${
@@ -368,6 +373,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                   if (onCloseMobile) onCloseMobile();
                 }}
                 title="AI Supervision"
+                aria-label="AI Supervision"
                 className={`flex items-center rounded-xl text-xs font-semibold transition ${
                   showFull
                     ? `w-full gap-2.5 px-3 py-2 ${
@@ -405,6 +411,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                   if (onCloseMobile) onCloseMobile();
                 }}
                 title={`Orders Registry (${orderCount} orders)`}
+                aria-label={`Orders Registry (${orderCount} orders)`}
                 className={`flex items-center rounded-xl text-xs font-semibold transition ${
                   showFull
                     ? `w-full justify-between px-3 py-2 ${
@@ -439,6 +446,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                   if (onCloseMobile) onCloseMobile();
                 }}
                 title="Returns & Refunds"
+                aria-label="Returns & Refunds"
                 className={`flex items-center rounded-xl text-xs font-semibold transition ${
                   showFull
                     ? `w-full gap-2.5 px-3 py-2 ${
@@ -465,6 +473,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                   if (onCloseMobile) onCloseMobile();
                 }}
                 title="Product Catalogue"
+                aria-label="Product Catalogue"
                 className={`flex items-center rounded-xl text-xs font-semibold transition ${
                   showFull
                     ? `w-full gap-2.5 px-3 py-2 ${
@@ -502,6 +511,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                   if (onCloseMobile) onCloseMobile();
                 }}
                 title="Knowledge Base (RAG Policy Articles)"
+                aria-label="Knowledge Base (RAG Policy Articles)"
                 className={`flex items-center rounded-xl text-xs font-semibold transition ${
                   showFull
                     ? `w-full justify-between px-3 py-2 ${
@@ -536,6 +546,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                     if (onCloseMobile) onCloseMobile();
                   }}
                   title="Analytics & Intelligence Reports"
+                  aria-label="Analytics & Intelligence Reports"
                   className={`flex items-center rounded-xl text-xs font-semibold transition ${
                     showFull
                       ? `w-full gap-2.5 px-3 py-2 ${
@@ -563,6 +574,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                   if (onCloseMobile) onCloseMobile();
                 }}
                 title="Telephony Voice AI (Twilio IVR)"
+                aria-label="Telephony Voice AI (Twilio IVR)"
                 className={`flex items-center rounded-xl text-xs font-semibold transition ${
                   showFull
                     ? `w-full gap-2.5 px-3 py-2 ${
@@ -600,6 +612,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                     if (onCloseMobile) onCloseMobile();
                   }}
                   title="Settings & Role Access"
+                  aria-label="Settings & Role Access"
                   className={`flex items-center rounded-xl text-xs font-semibold transition ${
                     showFull
                       ? `w-full gap-2.5 px-3 py-2 ${
@@ -631,40 +644,40 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
             <button
               type="button"
               onClick={toggleTheme}
-              title={`Switch to ${theme === "dark" ? "Forest & Emerald" : "Premium Gold"}`}
+              title={`Switch to ${theme === "dark" ? "Warm Terracotta" : "Premium Gold"}`}
               className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition ${
                 t.isDark
                   ? "bg-[#23221e] hover:bg-[#2c2a23] border border-[#353229] text-[#f5e7bf]"
-                  : "bg-[#0e3b2c] hover:bg-[#15543f] border border-[#185a45] text-white"
+                  : "bg-[#2f3b44] hover:bg-[#384652] border border-[#3f4f5c] text-white"
               }`}
             >
               <div className="flex items-center gap-2">
                 {theme === "dark" ? (
                   <Moon className="w-3.5 h-3.5 text-[#d9a83e] shrink-0" />
                 ) : (
-                  <Sun className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                  <Sun className="w-3.5 h-3.5 text-[#AB644B] shrink-0" />
                 )}
                 <span>Theme Mode</span>
               </div>
               <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${t.badgeHighlight}`}>
-                {theme === "dark" ? "Gold 🌙" : "Forest ☀️"}
+                {theme === "dark" ? "Gold 🌙" : "Terracotta ☀️"}
               </span>
             </button>
           ) : (
             <button
               type="button"
               onClick={toggleTheme}
-              title={`Switch to ${theme === "dark" ? "Forest & Emerald" : "Premium Gold"}`}
+              title={`Switch to ${theme === "dark" ? "Warm Terracotta" : "Premium Gold"}`}
               className={`w-10 h-10 mx-auto rounded-xl flex items-center justify-center transition border ${
                 t.isDark
                   ? "bg-[#23221e] hover:bg-[#2c2a23] border-[#353229] text-[#f5e7bf]"
-                  : "bg-[#0e3b2c] hover:bg-[#15543f] border-[#185a45] text-white"
+                  : "bg-[#2f3b44] hover:bg-[#384652] border-[#3f4f5c] text-white"
               }`}
             >
               {theme === "dark" ? (
                 <Moon className="w-4 h-4 text-[#d9a83e]" />
               ) : (
-                <Sun className="w-4 h-4 text-amber-300" />
+                <Sun className="w-4 h-4 text-[#AB644B]" />
               )}
             </button>
           )}
@@ -675,7 +688,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
               className={`p-2.5 rounded-xl flex items-center justify-between border ${
                 t.isDark
                   ? "bg-[#1c1b18] border-[#353229]"
-                  : "bg-[#0e3b2c] border-[#185a45]"
+                  : "bg-[#2f3b44] border-[#3f4f5c]"
               }`}
             >
               <div className="overflow-hidden">

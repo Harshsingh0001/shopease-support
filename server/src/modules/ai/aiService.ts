@@ -5,7 +5,11 @@ import { classifyIntent } from "./intentClassifier.js";
 import { retrieveGroundingContext } from "./contextRetriever.js";
 import { generateAiResponse } from "./llmAdapter.js";
 import type { AiResponseOutput, IntentAnalysis } from "./aiTypes.js";
-import { emitNewMessage, emitTicketUpdated } from "../../socket/socketServer.js";
+import {
+  emitNewMessage,
+  emitTicketUpdated,
+  emitNotificationToStaff,
+} from "../../socket/socketServer.js";
 
 interface ProcessCustomerQueryParams {
   customerId: string;
@@ -111,6 +115,22 @@ export const processCustomerQuery = async ({
           visibility: "internal_note",
         });
         emitNewMessage(ticket._id.toString(), aiNote);
+
+        // Real-Time Notification to Support Staff
+        emitNotificationToStaff({
+          id: String(Date.now()),
+          type: "escalation",
+          title: `⚠️ Ticket #${ticket.ticketNumber} Escalated`,
+          message: `Customer escalated to human support: "${aiOutput.escalationReason || 'Customer requested live human agent'}"`,
+          timestamp: new Date().toISOString(),
+          read: false,
+          linkAction: {
+            panel: "admin",
+            adminTab: "inbox",
+            ticketId: ticket._id.toString(),
+            ticketNumber: ticket.ticketNumber,
+          },
+        });
       } else {
         await ticket.save();
       }

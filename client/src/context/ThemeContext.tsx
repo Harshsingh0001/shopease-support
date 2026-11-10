@@ -21,8 +21,8 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const [theme, setThemeState] = useState<ThemeMode>(() => {
     const saved = localStorage.getItem("shopease_theme") as ThemeMode | null;
     if (saved === "light" || saved === "dark") return saved;
-    // Default to dark mode (Premium Gold)
-    return "dark";
+    // Default to Warm Terracotta mode theme (#AB644B, #9CABB4, #D2DCE6, #F2F2EB)
+    return "light";
   });
 
   const setTheme = (newTheme: ThemeMode) => {
@@ -42,7 +42,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem("shopease_theme", theme);
   }, [theme]);
 
-  const themeName = theme === "dark" ? "Premium Gold" : "Forest Light";
+  const themeName = theme === "dark" ? "Premium Gold" : "Warm Terracotta";
 
   return (
     <ThemeContext.Provider value={{ theme, themeName, toggleTheme, setTheme }}>

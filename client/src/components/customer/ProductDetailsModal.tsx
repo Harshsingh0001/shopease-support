@@ -398,7 +398,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
                       className={`text-left p-3.5 rounded-xl text-xs font-medium border flex items-center justify-between transition hover:scale-[1.01] active:scale-[0.99] ${
                         t.isDark
                           ? "bg-[#24221c] hover:bg-[#2e2b23] border-[#353229] text-[#f5e7bf]"
-                          : "bg-white hover:bg-[#f3f7f4] border-[#e2e8e2] text-[#1f2923]"
+                          : "bg-[#9CABB4] hover:bg-[#8ca0ab] border-[#8396a1] text-[#141c22]"
                       }`}
                     >
                       <span className="line-clamp-2">{q}</span>

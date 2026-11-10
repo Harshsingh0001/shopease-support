@@ -163,13 +163,13 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                 inStockOnly
                   ? t.isDark
                     ? "bg-[#382f1c] text-[#f5e7bf] border-[#d9a83e]/50"
-                    : "bg-[#e6f4ea] text-[#059669] border-[#a7f3d0]"
+                    : "bg-[#AB644B]/15 text-[#AB644B] border-[#AB644B]/30"
                   : `${t.secondaryButton} opacity-70 hover:opacity-100`
               }`}
             >
               <div
                 className={`w-3.5 h-3.5 rounded flex items-center justify-center border ${
-                  inStockOnly ? "bg-emerald-500 border-emerald-500 text-white" : "border-current/30"
+                  inStockOnly ? (t.isDark ? "bg-amber-500 border-amber-500 text-stone-950" : "bg-[#AB644B] border-[#AB644B] text-white") : "border-current/30"
                 }`}
               >
                 {inStockOnly && <Check className="w-3 h-3 stroke-[3]" />}

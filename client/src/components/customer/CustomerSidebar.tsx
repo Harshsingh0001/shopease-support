@@ -231,7 +231,7 @@ export const CustomerSidebar: React.FC<CustomerSidebarProps> = ({
                   className={`w-full px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-between transition border ${
                     t.isDark
                       ? "bg-[#382f1c] hover:bg-[#4a3f25] text-[#f5e7bf] border-[#d9a83e]/50"
-                      : "bg-[#124a38] hover:bg-[#185a45] text-white border-[#0e3b2c]"
+                      : "bg-[#2f3b44] hover:bg-[#384652] text-[#F2F2EB] border-[#3f4f5c]"
                   }`}
                 >
                   <div className="flex items-center gap-2">
@@ -248,10 +248,11 @@ export const CustomerSidebar: React.FC<CustomerSidebarProps> = ({
                     onSwitchToStaffPanel();
                   }}
                   title="Switch to Admin Operations CRM"
+                  aria-label="Switch to Admin Operations CRM"
                   className={`w-10 h-10 mx-auto rounded-xl flex items-center justify-center transition border ${
                     t.isDark
                       ? "bg-[#382f1c] hover:bg-[#4a3f25] text-[#f5e7bf] border-[#d9a83e]/50"
-                      : "bg-[#124a38] hover:bg-[#185a45] text-white border-[#0e3b2c]"
+                      : "bg-[#2f3b44] hover:bg-[#384652] text-[#F2F2EB] border-[#3f4f5c]"
                   }`}
                 >
                   <Shield className="w-4 h-4 text-amber-400" />
@@ -285,6 +286,7 @@ export const CustomerSidebar: React.FC<CustomerSidebarProps> = ({
                         if (onCloseMobile) onCloseMobile();
                       }}
                       title={item.label}
+                      aria-label={item.label}
                       className={`flex items-center rounded-xl text-xs font-semibold transition relative ${
                         showFull
                           ? `w-full justify-between px-3 py-2 ${
@@ -329,41 +331,41 @@ export const CustomerSidebar: React.FC<CustomerSidebarProps> = ({
             <button
               type="button"
               onClick={toggleTheme}
-              title={`Switch to ${theme === "dark" ? "Forest & Emerald" : "Premium Gold"}`}
+              title={`Switch to ${theme === "dark" ? "Warm Terracotta" : "Premium Gold"}`}
               className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition ${
                 t.isDark
                   ? "bg-[#23221e] hover:bg-[#2c2a23] border border-[#353229] text-[#f5e7bf]"
-                  : "bg-[#0e3b2c] hover:bg-[#15543f] border border-[#185a45] text-white"
+                  : "bg-[#2f3b44] hover:bg-[#384652] border border-[#3f4f5c] text-white"
               }`}
             >
               <div className="flex items-center gap-2">
                 {theme === "dark" ? (
                   <Moon className="w-3.5 h-3.5 text-[#d9a83e] shrink-0" />
                 ) : (
-                  <Sun className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                  <Sun className="w-3.5 h-3.5 text-[#AB644B] shrink-0" />
                 )}
                 <span>Theme Mode</span>
               </div>
               <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${t.badgeHighlight}`}>
-                {theme === "dark" ? "Gold 🌙" : "Forest ☀️"}
+                {theme === "dark" ? "Gold 🌙" : "Terracotta ☀️"}
               </span>
             </button>
           ) : (
             <button
               type="button"
               onClick={toggleTheme}
-              aria-label={`Switch theme to ${theme === "dark" ? "Forest & Emerald" : "Premium Gold"}`}
-              title={`Switch to ${theme === "dark" ? "Forest & Emerald" : "Premium Gold"}`}
+              aria-label={`Switch theme to ${theme === "dark" ? "Warm Terracotta" : "Premium Gold"}`}
+              title={`Switch to ${theme === "dark" ? "Warm Terracotta" : "Premium Gold"}`}
               className={`w-10 h-10 mx-auto rounded-xl flex items-center justify-center transition border ${
                 t.isDark
                   ? "bg-[#23221e] hover:bg-[#2c2a23] border-[#353229] text-[#f5e7bf]"
-                  : "bg-[#0e3b2c] hover:bg-[#15543f] border-[#185a45] text-white"
+                  : "bg-[#2f3b44] hover:bg-[#384652] border-[#3f4f5c] text-white"
               }`}
             >
               {theme === "dark" ? (
                 <Moon className="w-4 h-4 text-[#d9a83e]" />
               ) : (
-                <Sun className="w-4 h-4 text-amber-300" />
+                <Sun className="w-4 h-4 text-[#AB644B]" />
               )}
             </button>
           )}
@@ -374,7 +376,7 @@ export const CustomerSidebar: React.FC<CustomerSidebarProps> = ({
               className={`p-2.5 rounded-xl flex items-center justify-between border ${
                 t.isDark
                   ? "bg-[#1c1b18] border-[#353229]"
-                  : "bg-[#0e3b2c] border-[#185a45]"
+                  : "bg-[#2f3b44] border-[#3f4f5c]"
               }`}
             >
               <div className="overflow-hidden">

@@ -81,6 +81,15 @@ export const initSocketServer = (httpServer: HttpServer): SocketIOServer => {
     const socket = socketRaw as AuthenticatedSocket;
     const { id, name, role } = socket.data.user;
 
+    // Direct personal channel for notifications
+    socket.join(`user:${id}`);
+
+    // Staff channel for operational announcements & tickets
+    if (role === "agent" || role === "supervisor" || role === "admin") {
+      socket.join("channel:staff");
+      socket.join(`role:${role}`);
+    }
+
     // Join isolated ticket room
     socket.on("ticket:join", async ({ ticketId }: { ticketId: string }) => {
       try {
@@ -178,4 +187,71 @@ export const emitTicketCreated = (ticket: unknown): void => {
 export const emitTicketUpdated = (ticketId: string, ticket: unknown): void => {
   if (!io) return;
   io.to(`ticket:${ticketId}`).emit("ticket:updated", ticket);
+};
+
+export interface NotificationPayload {
+  id: string;
+  type:
+    | "ticket_message"
+    | "ticket_created"
+    | "ticket_status"
+    | "order_created"
+    | "order_status"
+    | "escalation"
+    | "return_request";
+  title: string;
+  message: string;
+  timestamp: string;
+  read: boolean;
+  linkAction?: {
+    panel: "customer" | "admin";
+    view?: string;
+    adminTab?: string;
+    ticketId?: string;
+    ticketNumber?: string;
+    orderId?: string;
+    orderNumber?: string;
+  };
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Emit real-time notification to a specific user (customer, agent, etc.)
+ */
+export const emitNotificationToUser = (
+  userId: string,
+  notification: NotificationPayload
+): void => {
+  if (!io) return;
+  io.to(`user:${userId}`).emit("notification:new", notification);
+};
+
+/**
+ * Emit real-time notification to all connected staff members (agents, supervisors, admins)
+ */
+export const emitNotificationToStaff = (
+  notification: NotificationPayload
+): void => {
+  if (!io) return;
+  io.to("channel:staff").emit("notification:new", notification);
+};
+
+/**
+ * Broadcast newly placed order to staff
+ */
+export const emitOrderCreated = (order: unknown): void => {
+  if (!io) return;
+  io.to("channel:staff").emit("order:created", order);
+};
+
+/**
+ * Broadcast order status/carrier updates
+ */
+export const emitOrderStatusUpdated = (
+  customerId: string,
+  order: unknown
+): void => {
+  if (!io) return;
+  io.to(`user:${customerId}`).emit("order:status_updated", order);
+  io.to("channel:staff").emit("order:status_updated", order);
 };

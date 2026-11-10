@@ -6,7 +6,13 @@ import Order from "../models/Order.js";
 import AuditLog from "../models/AuditLog.js";
 import { AppError } from "../utils/AppError.js";
 import type { AuthRequest } from "../middleware/authMiddleware.js";
-import { emitNewMessage, emitTicketUpdated } from "../socket/socketServer.js";
+import {
+  emitNewMessage,
+  emitTicketUpdated,
+  emitTicketCreated,
+  emitNotificationToUser,
+  emitNotificationToStaff,
+} from "../socket/socketServer.js";
 
 /**
  * Generate a unique, readable ticket number like TCK-849301
@@ -99,6 +105,40 @@ export const createTicket = async (
         priority: ticket.priority,
       },
     });
+
+    // Real-Time Notification to Staff
+    emitNotificationToStaff({
+      id: new mongoose.Types.ObjectId().toString(),
+      type: "ticket_created",
+      title: `New Ticket #${ticket.ticketNumber} Raised`,
+      message: `${req.user!.name || "Customer"}: "${subject}" (${ticket.priority.toUpperCase()})`,
+      timestamp: new Date().toISOString(),
+      read: false,
+      linkAction: {
+        panel: "admin",
+        adminTab: "tickets",
+        ticketId: ticket._id.toString(),
+        ticketNumber: ticket.ticketNumber,
+      },
+    });
+
+    // Real-Time Notification to Customer
+    emitNotificationToUser(req.user!.id, {
+      id: new mongoose.Types.ObjectId().toString(),
+      type: "ticket_created",
+      title: "Support Ticket Created ✅",
+      message: `Ticket #${ticket.ticketNumber} (${category.replace("_", " ")}) has been logged. An agent or AI is reviewing it.`,
+      timestamp: new Date().toISOString(),
+      read: false,
+      linkAction: {
+        panel: "customer",
+        view: "support",
+        ticketId: ticket._id.toString(),
+        ticketNumber: ticket.ticketNumber,
+      },
+    });
+
+    emitTicketCreated(ticket);
 
     res.status(201).json({
       success: true,
@@ -311,6 +351,22 @@ export const updateTicket = async (
     // Broadcast real-time ticket update
     emitTicketUpdated(ticket._id.toString(), ticket);
 
+    // Notify Customer about status change
+    emitNotificationToUser(ticket.customerId.toString(), {
+      id: new mongoose.Types.ObjectId().toString(),
+      type: "ticket_status",
+      title: `Ticket #${ticket.ticketNumber} Updated 🔔`,
+      message: `Your ticket status is now: ${ticket.status.replace("_", " ").toUpperCase()}`,
+      timestamp: new Date().toISOString(),
+      read: false,
+      linkAction: {
+        panel: "customer",
+        view: "support",
+        ticketId: ticket._id.toString(),
+        ticketNumber: ticket.ticketNumber,
+      },
+    });
+
     // Record Audit Logs for staff actions
     if (status && status !== previousStatus) {
       await AuditLog.create({
@@ -466,6 +522,39 @@ export const sendTicketMessage = async (
       visibility: message.visibility,
       createdAt: message.createdAt,
     });
+
+    // Real-Time Notification: Alert customer if staff replied, or alert staff if customer replied
+    if (isStaff && messageVisibility !== "internal_note") {
+      emitNotificationToUser(ticket.customerId.toString(), {
+        id: new mongoose.Types.ObjectId().toString(),
+        type: "ticket_message",
+        title: `Reply on Ticket #${ticket.ticketNumber} 💬`,
+        message: `${req.user!.name || "Support Agent"}: "${message.body.length > 100 ? message.body.slice(0, 100) + '...' : message.body}"`,
+        timestamp: new Date().toISOString(),
+        read: false,
+        linkAction: {
+          panel: "customer",
+          view: "support",
+          ticketId: ticket._id.toString(),
+          ticketNumber: ticket.ticketNumber,
+        },
+      });
+    } else if (!isStaff) {
+      emitNotificationToStaff({
+        id: new mongoose.Types.ObjectId().toString(),
+        type: "ticket_message",
+        title: `Customer Reply on Ticket #${ticket.ticketNumber}`,
+        message: `${req.user!.name || "Customer"}: "${message.body.length > 100 ? message.body.slice(0, 100) + '...' : message.body}"`,
+        timestamp: new Date().toISOString(),
+        read: false,
+        linkAction: {
+          panel: "admin",
+          adminTab: "inbox",
+          ticketId: ticket._id.toString(),
+          ticketNumber: ticket.ticketNumber,
+        },
+      });
+    }
 
     res.status(201).json({
       success: true,

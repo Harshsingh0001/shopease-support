@@ -94,7 +94,7 @@ export const CrmCustomersView: React.FC<CrmCustomersViewProps> = ({
                       <div className="font-bold flex items-center gap-2">
                         <div
                           className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs ${
-                            t.isDark ? "bg-[#382f1c] text-[#f5e7bf]" : "bg-[#124a38] text-white"
+                            t.isDark ? "bg-[#382f1c] text-[#f5e7bf]" : "bg-[#AB644B] text-white"
                           }`}
                         >
                           {cust.name.slice(0, 2).toUpperCase()}
@@ -165,7 +165,7 @@ export const CrmCustomersView: React.FC<CrmCustomersViewProps> = ({
               <div className="flex items-center gap-3">
                 <div
                   className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-base shadow-md ${
-                    t.isDark ? "bg-[#382f1c] text-[#f5e7bf]" : "bg-[#124a38] text-white"
+                    t.isDark ? "bg-[#382f1c] text-[#f5e7bf]" : "bg-[#AB644B] text-white"
                   }`}
                 >
                   {selectedCustomer.name.slice(0, 2).toUpperCase()}

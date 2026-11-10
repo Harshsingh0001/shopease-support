@@ -3,6 +3,12 @@ import mongoose from "mongoose";
 import Order from "../models/Order.js";
 import { AppError } from "../utils/AppError.js";
 import type { AuthRequest } from "../middleware/authMiddleware.js";
+import {
+  emitNotificationToUser,
+  emitNotificationToStaff,
+  emitOrderCreated,
+  emitOrderStatusUpdated,
+} from "../socket/socketServer.js";
 
 /**
  * Get all orders for the currently authenticated customer
@@ -190,6 +196,40 @@ export const createOrder = async (
       trackingNumber: `DLH${Math.floor(100000000 + Math.random() * 900000000)}`,
     });
 
+    // Real-Time Notification to Customer
+    emitNotificationToUser(req.user!.id, {
+      id: new mongoose.Types.ObjectId().toString(),
+      type: "order_created",
+      title: "Order Confirmed! 🛍️",
+      message: `Order #${order.orderNumber} placed for ₹${order.totalAmount.toLocaleString("en-IN")}. Live tracking active via ${order.carrier}.`,
+      timestamp: new Date().toISOString(),
+      read: false,
+      linkAction: {
+        panel: "customer",
+        view: "track",
+        orderId: order._id.toString(),
+        orderNumber: order.orderNumber,
+      },
+    });
+
+    // Real-Time Notification to Staff
+    emitNotificationToStaff({
+      id: new mongoose.Types.ObjectId().toString(),
+      type: "order_created",
+      title: `New Order #${order.orderNumber}`,
+      message: `${req.user!.name || "Customer"} placed an order for ₹${order.totalAmount.toLocaleString("en-IN")} (${order.items.length} items)`,
+      timestamp: new Date().toISOString(),
+      read: false,
+      linkAction: {
+        panel: "admin",
+        adminTab: "orders",
+        orderId: order._id.toString(),
+        orderNumber: order.orderNumber,
+      },
+    });
+
+    emitOrderCreated(order);
+
     res.status(201).json({
       success: true,
       order,
@@ -223,6 +263,25 @@ export const updateOrderStatus = async (
     if (!order) {
       return next(AppError.notFound("Order not found"));
     }
+
+    // Real-Time Notification to Customer
+    emitNotificationToUser(order.customerId.toString(), {
+      id: new mongoose.Types.ObjectId().toString(),
+      type: "order_status",
+      title: `Shipment Update: #${order.orderNumber} 🚚`,
+      message: `Your order is now: ${order.status.replace("_", " ").toUpperCase()} with ${order.carrier}.`,
+      timestamp: new Date().toISOString(),
+      read: false,
+      linkAction: {
+        panel: "customer",
+        view: "track",
+        orderId: order._id.toString(),
+        orderNumber: order.orderNumber,
+      },
+    });
+
+    emitOrderStatusUpdated(order.customerId.toString(), order);
+
     res.status(200).json({ success: true, order });
   } catch (error) {
     next(error);

@@ -162,12 +162,12 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
           <title>Invoice - ${order.orderNumber}</title>
           <style>
             body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 40px; color: #1f2923; }
-            .header { display: flex; justify-content: space-between; border-bottom: 2px solid #059669; padding-bottom: 20px; }
-            .title { font-size: 24px; font-weight: 900; color: #124a38; }
+            .header { display: flex; justify-content: space-between; border-bottom: 2px solid #AB644B; padding-bottom: 20px; }
+            .title { font-size: 24px; font-weight: 900; color: #AB644B; }
             table { width: 100%; border-collapse: collapse; margin-top: 30px; }
             th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8e2; font-size: 13px; }
             th { background: #f7f7f4; font-weight: bold; }
-            .total { text-align: right; margin-top: 20px; font-size: 18px; font-weight: 800; color: #059669; }
+            .total { text-align: right; margin-top: 20px; font-size: 18px; font-weight: 800; color: #AB644B; }
             .footer { margin-top: 50px; font-size: 11px; opacity: 0.7; text-align: center; }
           </style>
         </head>
@@ -212,7 +212,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
         <div className="flex items-center gap-4">
           <div
             className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center text-xl font-black shadow-lg ${
-              t.isDark ? "bg-[#382f1c] text-[#f5e7bf] border border-[#d9a83e]/30" : "bg-[#124a38] text-white"
+              t.isDark ? "bg-[#382f1c] text-[#f5e7bf] border border-[#d9a83e]/30" : "bg-[#AB644B] text-white shadow-md shadow-[#AB644B]/20"
             }`}
           >
             {user?.name?.slice(0, 2).toUpperCase() || "CU"}
@@ -777,7 +777,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                             className={`px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 border shadow-sm transition active:scale-95 ${
                               t.isDark
                                 ? "bg-[#382f1c] hover:bg-[#4a3f25] text-[#f5e7bf] border-[#d9a83e]/50"
-                                : "bg-[#e6f4ea] hover:bg-[#d5ebd9] text-[#059669] border-[#a7f3d0]"
+                                : "bg-[#AB644B]/15 hover:bg-[#AB644B]/25 text-[#AB644B] border-[#AB644B]/30"
                             }`}
                           >
                             <Sparkles className="w-3.5 h-3.5" />
@@ -1011,7 +1011,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                       className={`w-full py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 border transition ${
                         t.isDark
                           ? "bg-[#23221e] hover:bg-[#2d2b24] text-[#f5e7bf] border-[#d9a83e]/30"
-                          : "bg-[#e6f4ea] hover:bg-[#d5ebd9] text-[#059669] border-[#a7f3d0]"
+                          : "bg-[#AB644B]/15 hover:bg-[#AB644B]/25 text-[#AB644B] border-[#AB644B]/30"
                       }`}
                     >
                       <Sparkles className="w-3.5 h-3.5 shrink-0" />
@@ -1042,10 +1042,10 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
           <div className={`p-6 rounded-3xl border shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 ${t.card}`}>
             <div className="flex items-center gap-4">
               <div
-                className={`w-16 h-16 sm:w-20 sm:h-20 rounded-3xl flex items-center justify-center font-black text-xl sm:text-2xl shadow-lg border-2 border-emerald-500/30 ${
+                className={`w-16 h-16 sm:w-20 sm:h-20 rounded-3xl flex items-center justify-center font-black text-xl sm:text-2xl shadow-lg border-2 border-[#AB644B]/30 ${
                   t.isDark
                     ? "bg-[#382f1c] text-[#f5e7bf]"
-                    : "bg-[#124a38] text-white"
+                    : "bg-[#AB644B] text-white"
                 }`}
               >
                 {(user?.name || "Customer")

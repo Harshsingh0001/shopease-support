@@ -111,8 +111,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       label: "AI Autonomous (Grounded RAG)",
       percentage: 94.2,
       count: 1482,
-      color: theme === "dark" ? "#d9a83e" : "#059669",
-      accentBg: theme === "dark" ? "bg-[#d9a83e]/15 text-[#f5e7bf]" : "bg-emerald-500/15 text-emerald-600",
+      color: theme === "dark" ? "#d9a83e" : "#AB644B",
+      accentBg: theme === "dark" ? "bg-[#d9a83e]/15 text-[#f5e7bf]" : "bg-[#AB644B]/15 text-[#AB644B]",
     },
     {
       id: "human",
@@ -501,12 +501,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop
                     offset="0%"
-                    stopColor={theme === "dark" ? "#d9a83e" : "#059669"}
+                    stopColor={theme === "dark" ? "#d9a83e" : "#AB644B"}
                     stopOpacity="0.4"
                   />
                   <stop
                     offset="100%"
-                    stopColor={theme === "dark" ? "#d9a83e" : "#059669"}
+                    stopColor={theme === "dark" ? "#d9a83e" : "#AB644B"}
                     stopOpacity="0.0"
                   />
                 </linearGradient>
@@ -537,7 +537,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <polyline
                 points={polylinePoints}
                 fill="none"
-                stroke={theme === "dark" ? "#d9a83e" : "#059669"}
+                stroke={theme === "dark" ? "#d9a83e" : "#AB644B"}
                 strokeWidth="3"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -550,7 +550,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   y1={paddingY}
                   x2={getX(hoveredPointIndex)}
                   y2={chartHeight - paddingY}
-                  stroke={theme === "dark" ? "#f5e7bf" : "#124a38"}
+                  stroke={theme === "dark" ? "#f5e7bf" : "#242e35"}
                   strokeWidth="1.5"
                   strokeDasharray="3 3"
                 />
@@ -569,8 +569,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       cx={cx}
                       cy={cy}
                       r={isHovered ? 7 : 4.5}
-                      fill={isHovered ? (theme === "dark" ? "#f5e7bf" : "#ffffff") : (theme === "dark" ? "#d9a83e" : "#059669")}
-                      stroke={theme === "dark" ? "#17140d" : "#124a38"}
+                      fill={isHovered ? (theme === "dark" ? "#f5e7bf" : "#ffffff") : (theme === "dark" ? "#d9a83e" : "#AB644B")}
+                      stroke={theme === "dark" ? "#17140d" : "#242e35"}
                       strokeWidth={isHovered ? 3 : 2}
                       className="transition-opacity duration-200"
                     />
@@ -679,7 +679,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   cy="50"
                   r="38"
                   fill="transparent"
-                  stroke={theme === "dark" ? "#d9a83e" : "#059669"}
+                  stroke={theme === "dark" ? "#d9a83e" : "#AB644B"}
                   strokeWidth={hoveredSlice === "ai" ? "16" : "13"}
                   strokeDasharray="225 240"
                   strokeDashoffset="0"
@@ -817,7 +817,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <div className="w-full h-2 rounded-full bg-current/10 overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-500 ${
-                          theme === "dark" ? "bg-[#d9a83e]" : "bg-[#059669]"
+                          theme === "dark" ? "bg-[#d9a83e]" : "bg-[#AB644B]"
                         }`}
                         style={{ width: `${cat.pct}%` }}
                       />
@@ -866,7 +866,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 onMouseEnter={() => setHoveredBarIndex(idx)}
                 onMouseLeave={() => setHoveredBarIndex(null)}
                 className={`p-3 rounded-2xl border text-center transition flex flex-col justify-between items-center h-44 cursor-pointer ${
-                  isHovered ? `${t.card} ring-2 ring-emerald-500 shadow-md` : `${t.cardMuted} ${t.divider}`
+                  isHovered ? `${t.card} ring-2 ring-[#AB644B] shadow-md` : `${t.cardMuted} ${t.divider}`
                 }`}
               >
                 <div className="text-[10px] font-bold opacity-70">
@@ -877,10 +877,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <div
                     className={`w-full rounded-xl transition-all duration-300 ${
                       isHovered
-                        ? "bg-emerald-500"
+                        ? "bg-[#AB644B]"
                         : theme === "dark"
                         ? "bg-[#d9a83e]"
-                        : "bg-[#059669]"
+                        : "bg-[#AB644B]"
                     }`}
                     style={{ height: `${Math.max(15, barHeightPct)}%` }}
                   />

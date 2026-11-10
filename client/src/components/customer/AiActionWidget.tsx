@@ -144,7 +144,7 @@ export const AiActionWidget: React.FC<AiActionWidgetProps> = ({
               className={`p-4 rounded-2xl border shadow-xl space-y-3 relative overflow-hidden transition-all duration-300 ${
                 t.isDark
                   ? "bg-gradient-to-b from-[#11100d] to-[#060605] border-amber-500/30 text-white shadow-[0_12px_40px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.1)] hover:border-amber-400/50 hover:shadow-[0_0_25px_rgba(217,168,62,0.2)] hover:-translate-y-0.5"
-                  : "bg-white border-[#cfe2d4]"
+                  : "bg-[#9CABB4] border-[#8396a1] text-[#141c22]"
               }`}
             >
               <div className="flex items-center justify-between border-b border-amber-500/20 pb-2">
@@ -391,7 +391,7 @@ export const AiActionWidget: React.FC<AiActionWidgetProps> = ({
               className={`p-4 rounded-2xl border space-y-3 shadow-xl transition-all duration-300 ${
                 t.isDark
                   ? "bg-gradient-to-b from-[#11100d] to-[#060604] border-amber-500/30 text-white shadow-[0_12px_40px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.1)] hover:border-amber-400/60 hover:shadow-[0_0_25px_rgba(217,168,62,0.25)] hover:-translate-y-0.5"
-                  : "bg-white border-[#d2ead7]"
+                  : "bg-[#9CABB4] border-[#8396a1] text-[#141c22]"
               }`}
             >
               <div className="flex items-center justify-between">
@@ -457,7 +457,7 @@ export const AiActionWidget: React.FC<AiActionWidgetProps> = ({
                     className={`p-3.5 rounded-2xl border shadow-lg flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 ${
                       t.isDark
                         ? "bg-gradient-to-b from-[#11100d] to-[#070604] hover:from-[#1a1711] hover:to-[#0f0d09] border-amber-500/25 hover:border-amber-400/60 text-white shadow-black/80 hover:shadow-[0_12px_35px_rgba(217,168,62,0.25)]"
-                        : "bg-white border-[#d2ead7]"
+                        : "bg-[#9CABB4] border-[#8396a1] text-[#141c22]"
                     }`}
                   >
                     <div>
@@ -526,7 +526,7 @@ export const AiActionWidget: React.FC<AiActionWidgetProps> = ({
               className={`p-4 rounded-2xl border space-y-3 shadow-xl transition-all duration-300 ${
                 t.isDark
                   ? "bg-gradient-to-b from-[#11100d] to-[#070604] border-amber-500/30 text-amber-100 shadow-[0_12px_40px_rgba(0,0,0,0.85)] hover:border-amber-400/50"
-                  : "bg-white border-[#d2ead7]"
+                  : "bg-[#9CABB4] border-[#8396a1] text-[#141c22]"
               }`}
             >
               <div className="flex items-center gap-2 font-black text-xs text-amber-400">
