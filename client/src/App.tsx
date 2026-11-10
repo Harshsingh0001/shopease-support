@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
+import { NotificationProvider, useNotifications, type NotificationItem } from "./context/NotificationContext";
+import { ToastContainer } from "./components/common/ToastContainer";
+import { NotificationDropdown } from "./components/common/NotificationDropdown";
 import { api } from "./services/api";
 import type {
   Product,
@@ -136,6 +139,7 @@ import {
   Plus,
   Package,
   Menu,
+  Bell,
 } from "lucide-react";
 
 /* =========================================================================
@@ -180,15 +184,16 @@ const AuthView = () => {
         <button
           type="button"
           onClick={toggleTheme}
-          title={`Switch to ${theme === "dark" ? "Forest & Emerald" : "Premium Gold"}`}
+          aria-label={`Switch to ${theme === "dark" ? "Warm Terracotta" : "Premium Gold"}`}
+          title={`Switch to ${theme === "dark" ? "Warm Terracotta" : "Premium Gold"}`}
           className={`px-3 py-1.5 rounded-xl text-xs font-semibold border flex items-center gap-2 transition ${t.secondaryButton}`}
         >
           {theme === "dark" ? (
             <Moon className="w-4 h-4 text-[#d9a83e]" />
           ) : (
-            <Sun className="w-4 h-4 text-amber-500" />
+            <Sun className="w-4 h-4 text-[#AB644B]" />
           )}
-          <span>{theme === "dark" ? "Premium Gold 🌙" : "Forest Light ☀️"}</span>
+          <span>{theme === "dark" ? "Premium Gold 🌙" : "Warm Terracotta ☀️"}</span>
         </button>
       </div>
 
@@ -221,6 +226,7 @@ const AuthView = () => {
               <button
                 type="button"
                 onClick={() => quickLogin("admin")}
+                aria-label="Quick login as Vikram Mehta (Admin)"
                 className={`p-2.5 rounded-xl border text-left transition hover:scale-[1.02] flex flex-col justify-between border-amber-500/30 ${t.secondaryButton}`}
               >
                 <div>
@@ -236,6 +242,7 @@ const AuthView = () => {
               <button
                 type="button"
                 onClick={() => quickLogin("supervisor")}
+                aria-label="Quick login as Aditi Verma (Supervisor)"
                 className={`p-2.5 rounded-xl border text-left transition hover:scale-[1.02] flex flex-col justify-between border-purple-500/30 ${t.secondaryButton}`}
               >
                 <div>
@@ -245,7 +252,7 @@ const AuthView = () => {
                   </div>
                   <div className="text-[10px] opacity-70 font-mono mt-0.5">supervisor@shopease.local</div>
                 </div>
-                <div className="text-[9px] opacity-60 mt-1">Escalations, Refunds &amp; Analytics</div>
+                <div className="text-[9px] opacity-60 mt-1">Escalations, Refunds & Analytics</div>
               </button>
             </div>
 
@@ -253,6 +260,7 @@ const AuthView = () => {
             <button
               type="button"
               onClick={() => quickLogin("agent")}
+              aria-label="Quick login as Priya Sharma (Support Agent)"
               className={`w-full p-2.5 rounded-xl border text-left transition hover:scale-[1.01] flex items-center justify-between border-emerald-500/30 ${t.secondaryButton}`}
             >
               <div>
@@ -262,7 +270,7 @@ const AuthView = () => {
                 </div>
                 <div className="text-[10px] opacity-70 font-mono mt-0.5">agent@shopease.local</div>
               </div>
-              <div className="text-[9px] opacity-60 text-right">CRM Inbox &amp; Customer 360</div>
+              <div className="text-[9px] opacity-60 text-right">CRM Inbox & Customer 360</div>
             </button>
 
             {/* Row 3: Customers */}
@@ -270,6 +278,7 @@ const AuthView = () => {
               <button
                 type="button"
                 onClick={() => quickLogin("customer")}
+                aria-label="Quick login as Aman Gupta (Customer)"
                 className={`p-2.5 rounded-xl border text-left transition hover:scale-[1.02] flex flex-col justify-between ${t.secondaryButton}`}
               >
                 <div>
@@ -285,6 +294,7 @@ const AuthView = () => {
               <button
                 type="button"
                 onClick={() => quickLogin("customer2")}
+                aria-label="Quick login as Rohit Kumar (Customer)"
                 className={`p-2.5 rounded-xl border text-left transition hover:scale-[1.02] flex flex-col justify-between ${t.secondaryButton}`}
               >
                 <div>
@@ -487,6 +497,29 @@ const MainWorkspace = () => {
   const [newInitialMsg, setNewInitialMsg] = useState("");
   const [ticketSubmitting, setTicketSubmitting] = useState(false);
 
+  // Real-time Notification Management
+  const { unreadCount } = useNotifications();
+  const [isAdminNotificationsOpen, setIsAdminNotificationsOpen] = useState(false);
+
+  const handleNotificationAction = (item: NotificationItem) => {
+    setIsAdminNotificationsOpen(false);
+    if (!item.linkAction) return;
+
+    if (item.linkAction.panel === "admin") {
+      setPanelMode("admin");
+      if (item.linkAction.adminTab) {
+        setAdminTab(item.linkAction.adminTab as AdminTab);
+      }
+    } else {
+      setPanelMode("customer");
+      if (item.linkAction.ticketId) {
+        handleOpenTicketChat(item.linkAction.ticketId);
+      } else if (item.linkAction.view) {
+        setCustomerView(item.linkAction.view as CustomerViewType);
+      }
+    }
+  };
+
   // Customer Live Ticket Chat Modal State
   const [chatTicket, setChatTicket] = useState<Ticket | null>(null);
   const [isTicketChatOpen, setIsTicketChatOpen] = useState(false);
@@ -521,8 +554,15 @@ const MainWorkspace = () => {
     localStorage.setItem("shopease_cart", JSON.stringify(cart));
   }, [cart]);
 
+  // Fetch guards to prevent duplicate network chains
+  const productsLoadingRef = React.useRef(false);
+  const ordersLoadingRef = React.useRef(false);
+  const ticketsLoadingRef = React.useRef(false);
+
   // Load Products (with background caching for subsequent instant loads)
   const loadProducts = async () => {
+    if (productsLoadingRef.current) return;
+    productsLoadingRef.current = true;
     setProductsLoading(true);
     try {
       const res = await api.products.list();
@@ -535,12 +575,15 @@ const MainWorkspace = () => {
     } catch (err) {
       console.error("Failed to load products", err);
     } finally {
+      productsLoadingRef.current = false;
       setProductsLoading(false);
     }
   };
 
   // Load Orders
   const loadOrders = async () => {
+    if (ordersLoadingRef.current) return;
+    ordersLoadingRef.current = true;
     setOrdersLoading(true);
     try {
       if (isStaff && panelMode === "admin") {
@@ -553,12 +596,15 @@ const MainWorkspace = () => {
     } catch (err) {
       console.error("Failed to load orders", err);
     } finally {
+      ordersLoadingRef.current = false;
       setOrdersLoading(false);
     }
   };
 
   // Load Tickets
   const loadTickets = async () => {
+    if (ticketsLoadingRef.current) return;
+    ticketsLoadingRef.current = true;
     setTicketsLoading(true);
     try {
       if (isStaff && panelMode === "admin") {
@@ -571,6 +617,7 @@ const MainWorkspace = () => {
     } catch (err) {
       console.error("Failed to load tickets", err);
     } finally {
+      ticketsLoadingRef.current = false;
       setTicketsLoading(false);
     }
   };
@@ -580,7 +627,7 @@ const MainWorkspace = () => {
     loadProducts();
   }, []);
 
-  // Priority 2: Fetch Orders & Tickets contextually when entering respective views or admin panel
+  // Priority 2: Fetch Orders & Tickets contextually only when viewing respective screens
   useEffect(() => {
     if (panelMode === "admin" || ["orders", "track", "returns", "dashboard"].includes(customerView)) {
       loadOrders();
@@ -592,26 +639,6 @@ const MainWorkspace = () => {
       loadTickets();
     }
   }, [panelMode, customerView]);
-
-  // Priority 3: Non-blocking background pre-warm on idle after initial paint
-  useEffect(() => {
-    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
-      const handle = (window as any).requestIdleCallback(
-        () => {
-          loadOrders();
-          loadTickets();
-        },
-        { timeout: 3500 }
-      );
-      return () => (window as any).cancelIdleCallback(handle);
-    } else {
-      const timer = setTimeout(() => {
-        loadOrders();
-        loadTickets();
-      }, 2500);
-      return () => clearTimeout(timer);
-    }
-  }, [panelMode]);
 
   // Cart Handlers
   const handleAddToCart = (product: Product, quantity = 1) => {
@@ -777,6 +804,7 @@ const MainWorkspace = () => {
               onSwitchToStaffPanel={
                 isStaff ? () => setPanelMode("admin") : undefined
               }
+              onOpenTicketChat={handleOpenTicketChat}
             />
 
             {/* Main Customer Content Scroll Container */}
@@ -1096,6 +1124,32 @@ const MainWorkspace = () => {
               </div>
 
               <div className="flex items-center gap-2">
+                {/* Staff Real-time Notification Bell */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsAdminNotificationsOpen(!isAdminNotificationsOpen)}
+                    aria-label={`Staff Notifications (${unreadCount} unread)`}
+                    title="Staff Real-time Alerts"
+                    className={`relative p-2 rounded-xl flex items-center justify-center transition shrink-0 border ${
+                      isAdminNotificationsOpen ? t.primaryButton : t.secondaryButton
+                    }`}
+                  >
+                    <Bell className="w-4 h-4" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full text-[10px] font-black flex items-center justify-center px-1 bg-amber-500 text-stone-950 shadow-md animate-pulse">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
+                  </button>
+
+                  <NotificationDropdown
+                    isOpen={isAdminNotificationsOpen}
+                    onClose={() => setIsAdminNotificationsOpen(false)}
+                    onActionClick={handleNotificationAction}
+                  />
+                </div>
+
                 <button
                   type="button"
                   onClick={() => setPanelMode("customer")}
@@ -1357,6 +1411,9 @@ const MainWorkspace = () => {
           />
         )}
       </React.Suspense>
+
+      {/* Real-time Floating Toast Alert Notifications Stack */}
+      <ToastContainer onActionClick={handleNotificationAction} />
     </div>
   );
 };
@@ -1368,7 +1425,9 @@ export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <AppContent />
+        <NotificationProvider>
+          <AppContent />
+        </NotificationProvider>
       </AuthProvider>
     </ThemeProvider>
   );

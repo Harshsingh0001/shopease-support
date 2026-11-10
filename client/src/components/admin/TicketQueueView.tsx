@@ -170,10 +170,10 @@ export const TicketQueueView: React.FC<TicketQueueViewProps> = ({
                     isSelected
                       ? t.isDark
                         ? "bg-[#28251e] border-l-4 border-[#d9a83e] text-[#f5e7bf]"
-                        : "bg-[#eaf4ee] border-l-4 border-[#059669] text-[#059669]"
+                        : "bg-[#D2DCE6]/40 border-l-4 border-[#AB644B] text-[#AB644B]"
                       : t.isDark
                       ? "hover:bg-[#201f1a]"
-                      : "hover:bg-[#f2f7f3]"
+                      : "hover:bg-[#D2DCE6]/20"
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -369,7 +369,7 @@ export const TicketQueueView: React.FC<TicketQueueViewProps> = ({
                   className={`self-start sm:self-auto px-3 py-1 rounded-xl text-[11px] font-bold flex items-center gap-1.5 border transition ${
                     t.isDark
                       ? "bg-[#382f1c] hover:bg-[#483d25] text-[#f5e7bf] border-[#d9a83e]/50"
-                      : "bg-[#e6f4ea] hover:bg-[#d6ecd9] text-[#059669] border-[#a7f3d0]"
+                      : "bg-[#AB644B]/15 hover:bg-[#AB644B]/25 text-[#AB644B] border-[#AB644B]/30"
                   }`}
                 >
                   <Sparkles className="w-3.5 h-3.5" />

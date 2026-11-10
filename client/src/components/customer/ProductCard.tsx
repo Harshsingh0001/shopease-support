@@ -50,8 +50,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               onOpenDetails(product);
             }
           }}
-          className={`relative h-56 rounded-2xl flex items-center justify-center cursor-pointer overflow-hidden mb-4 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
-            t.isDark ? "bg-[#141412]" : "bg-[#f4f7f4]"
+          className={`relative h-56 rounded-2xl flex items-center justify-center cursor-pointer overflow-hidden mb-4 transition-colors focus:outline-none focus:ring-2 focus:ring-[#AB644B] ${
+            t.isDark ? "bg-[#141412]" : "bg-[#F2F2EB]"
           }`}
         >
           {/* Skeleton placeholder while image loads */}
@@ -109,7 +109,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-md border ${
                 t.isDark
                   ? "bg-[#1c1b18]/90 text-[#f5e7bf] border-[#d9a83e]/30"
-                  : "bg-white/95 text-[#1f2923] border-[#e2e8e2]"
+                  : "bg-[#9CABB4] text-[#141c22] border-[#8396a1]"
               }`}
             >
               {product.category}
@@ -128,7 +128,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 className={`text-[10px] font-semibold px-2 py-0.5 rounded-full backdrop-blur-md flex items-center gap-1 ${
                   t.isDark
                     ? "bg-[#1e3324]/90 text-[#86efac] border border-emerald-500/30"
-                    : "bg-white/90 text-emerald-700 border border-emerald-200"
+                    : "bg-[#D2DCE6] text-emerald-800 border border-[#8396a1]"
                 }`}
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
@@ -183,7 +183,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* Express Delivery Badge */}
         <div className="flex items-center gap-1.5 text-[10px] font-semibold opacity-85 mb-3">
-          <Truck className="w-3 h-3 text-emerald-500 shrink-0" />
+          <Truck className={`w-3 h-3 shrink-0 ${t.isDark ? "text-amber-400" : "text-[#AB644B]"}`} />
           <span>{enhancement.deliveryEstimate}</span>
         </div>
       </div>
@@ -207,7 +207,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded-md ${
                 t.isDark
                   ? "bg-[#d9a83e]/20 text-[#f5e7bf]"
-                  : "bg-emerald-100 text-emerald-800"
+                  : "bg-[#AB644B]/15 text-[#AB644B]"
               }`}
             >
               -{discountPercent}% OFF
@@ -226,7 +226,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             className={`col-span-2 px-2.5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 border transition active:scale-95 ${
               t.isDark
                 ? "bg-[#23221e] hover:bg-[#2d2b24] text-[#f5e7bf] border-[#d9a83e]/30"
-                : "bg-[#e6f4ea] hover:bg-[#d5ebd9] text-[#059669] border-[#a7f3d0]"
+                : "bg-[#D2DCE6]/50 hover:bg-[#D2DCE6]/80 text-[#AB644B] border-[#9CABB4]/40"
             }`}
           >
             <Sparkles className="w-3.5 h-3.5 shrink-0" />
@@ -241,7 +241,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             aria-label={isAdded ? `${product.name} added to cart` : `Add ${product.name} to cart`}
             className={`col-span-3 px-3 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition active:scale-95 disabled:opacity-40 ${
               isAdded
-                ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30"
+                ? "bg-[#242e35] text-white shadow-md shadow-[#242e35]/30"
                 : t.primaryButton
             }`}
           >

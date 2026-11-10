@@ -346,7 +346,7 @@ export const FloatingAiChat: React.FC<FloatingAiChatProps> = ({
                       className={`text-[10px] font-semibold px-2.5 py-1 rounded-xl border transition-all duration-200 hover:scale-105 active:scale-95 ${
                         t.isDark
                           ? "bg-gradient-to-b from-[#11100d] to-[#070705] hover:from-[#1b1812] hover:to-[#0e0c08] border-amber-500/20 hover:border-amber-400/60 text-neutral-100 shadow-sm"
-                          : "bg-white hover:bg-[#f3f7f4] border-[#e2e8e2] text-[#1f2923]"
+                          : "bg-[#9CABB4] hover:bg-[#8ca0ab] border-[#8396a1] text-[#141c22]"
                       }`}
                     >
                       {qa.label}

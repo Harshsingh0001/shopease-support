@@ -277,11 +277,11 @@ export const CustomerTicketChatModal: React.FC<CustomerTicketChatModalProps> = (
                       isCust
                         ? t.isDark
                           ? "bg-[#382f1c] text-[#f5e7bf] rounded-br-xs border border-[#554627]"
-                          : "bg-emerald-600 text-white rounded-br-xs"
+                          : "bg-[#AB644B] text-white rounded-br-xs shadow-sm"
                         : isAgent
                         ? t.isDark
                           ? "bg-[#1f1d19] text-neutral-100 rounded-bl-xs border border-[#3b3626]"
-                          : "bg-white text-neutral-900 rounded-bl-xs border border-neutral-200 shadow-xs"
+                          : "bg-[#9CABB4] text-[#141c22] rounded-bl-xs border border-[#8396a1] shadow-xs"
                         : t.isDark
                         ? "bg-[#181d24] text-blue-100 rounded-bl-xs border border-blue-900/40"
                         : "bg-blue-50 text-blue-950 rounded-bl-xs border border-blue-200"

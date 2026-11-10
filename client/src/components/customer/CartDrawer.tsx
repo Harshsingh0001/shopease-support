@@ -170,7 +170,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               <div className="p-4 sm:p-6 text-center space-y-4 my-auto">
                 <div
                   className={`w-16 h-16 rounded-3xl mx-auto flex items-center justify-center shadow-lg ${
-                    t.isDark ? "bg-[#382f1c] text-[#f5e7bf]" : "bg-[#e6f4ea] text-[#059669]"
+                    t.isDark ? "bg-[#382f1c] text-[#f5e7bf]" : "bg-[#AB644B]/15 text-[#AB644B]"
                   }`}
                 >
                   <CheckCircle className="w-9 h-9" />
@@ -301,7 +301,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                           paymentMethod === pm.id
                             ? t.isDark
                               ? "bg-[#382f1c] text-[#f5e7bf] border-[#d9a83e]"
-                              : "bg-[#e6f4ea] text-[#059669] border-[#059669]"
+                              : "bg-[#AB644B]/15 text-[#AB644B] border-[#AB644B]"
                             : "opacity-70 hover:opacity-100"
                         }`}
                       >

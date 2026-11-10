@@ -11,9 +11,12 @@ import {
   Sparkles,
   Menu,
   ChevronRight,
+  Bell,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
+import { useNotifications, type NotificationItem } from "../../context/NotificationContext";
+import { NotificationDropdown } from "../common/NotificationDropdown";
 import { getThemeStyles } from "../../utils/themeStyles";
 
 export type CustomerViewType =
@@ -41,6 +44,7 @@ interface CustomerNavbarProps {
   onOpenAiChat: () => void;
   onOpenMobileSidebar?: () => void;
   onSwitchToStaffPanel?: () => void;
+  onOpenTicketChat?: (ticketIdOrNumber: string) => void;
 }
 
 export const CustomerNavbar: React.FC<CustomerNavbarProps> = ({
@@ -56,13 +60,27 @@ export const CustomerNavbar: React.FC<CustomerNavbarProps> = ({
   onOpenAiChat,
   onOpenMobileSidebar,
   onSwitchToStaffPanel,
+  onOpenTicketChat,
 }) => {
   const { user, logout, quickLogin } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { unreadCount } = useNotifications();
   const t = getThemeStyles(theme);
 
   const [showMobileSearch, setShowMobileSearch] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const isStaff = user?.role === "agent" || user?.role === "supervisor" || user?.role === "admin";
+
+  const handleNotificationAction = (item: NotificationItem) => {
+    setIsNotificationsOpen(false);
+    if (!item.linkAction) return;
+
+    if (item.linkAction.ticketId && onOpenTicketChat) {
+      onOpenTicketChat(item.linkAction.ticketId);
+    } else if (item.linkAction.view) {
+      setActiveView(item.linkAction.view as CustomerViewType);
+    }
+  };
 
   const getPageTitle = (view: CustomerViewType) => {
     switch (view) {
@@ -112,6 +130,7 @@ export const CustomerNavbar: React.FC<CustomerNavbarProps> = ({
             type="button"
             onClick={() => quickLogin("customer")}
             title="Switch to Customer: Aman Gupta"
+            aria-label="Switch to Customer: Aman Gupta"
             className={`px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-sans font-semibold transition ${
               user?.email === "customer@shopease.local" ? t.badgeHighlight : "opacity-70 hover:opacity-100"
             }`}
@@ -122,6 +141,7 @@ export const CustomerNavbar: React.FC<CustomerNavbarProps> = ({
             type="button"
             onClick={() => quickLogin("customer2")}
             title="Switch to Customer: Rohit Kumar"
+            aria-label="Switch to Customer: Rohit Kumar"
             className={`px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-sans font-semibold transition ${
               user?.email === "customer2@shopease.local" ? t.badgeHighlight : "opacity-70 hover:opacity-100"
             }`}
@@ -132,6 +152,7 @@ export const CustomerNavbar: React.FC<CustomerNavbarProps> = ({
             type="button"
             onClick={() => quickLogin("agent")}
             title="Switch to Support Agent: Priya Sharma"
+            aria-label="Switch to Support Agent: Priya Sharma"
             className={`px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-sans font-semibold transition ${
               user?.email === "agent@shopease.local" ? t.badgeHighlight : "opacity-70 hover:opacity-100"
             }`}
@@ -142,6 +163,7 @@ export const CustomerNavbar: React.FC<CustomerNavbarProps> = ({
             type="button"
             onClick={() => quickLogin("supervisor")}
             title="Switch to Supervisor: Aditi Verma"
+            aria-label="Switch to Supervisor: Aditi Verma"
             className={`px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-sans font-semibold transition ${
               user?.email === "supervisor@shopease.local" ? t.badgeHighlight : "opacity-70 hover:opacity-100"
             }`}
@@ -152,6 +174,7 @@ export const CustomerNavbar: React.FC<CustomerNavbarProps> = ({
             type="button"
             onClick={() => quickLogin("admin")}
             title="Switch to Admin: Vikram Mehta"
+            aria-label="Switch to Admin: Vikram Mehta"
             className={`px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-sans font-semibold transition ${
               user?.email === "admin@shopease.local" ? t.badgeHighlight : "opacity-70 hover:opacity-100"
             }`}
@@ -166,7 +189,7 @@ export const CustomerNavbar: React.FC<CustomerNavbarProps> = ({
               className={`ml-1 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-sans font-bold flex items-center gap-1 border ${
                 t.isDark
                   ? "bg-[#382f1c] text-[#f5e7bf] border-[#d9a83e]/50 hover:bg-[#4a3f25]"
-                  : "bg-[#124a38] text-white border-[#0e3b2c] hover:bg-[#185a45]"
+                  : "bg-[#AB644B] text-white border-[#96543d] hover:bg-[#96543d]"
               }`}
             >
               <Shield className="w-3 h-3" />
@@ -283,10 +306,10 @@ export const CustomerNavbar: React.FC<CustomerNavbarProps> = ({
             className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition border ${
               t.isDark
                 ? "bg-[#382f1c] hover:bg-[#483d25] text-[#f5e7bf] border-[#d9a83e]/40"
-                : "bg-[#e6f4ea] hover:bg-[#d5ecd9] text-[#059669] border-[#a7f3d0]"
+                : "bg-[#AB644B]/15 hover:bg-[#AB644B]/25 text-[#AB644B] border-[#AB644B]/30"
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
+            <Sparkles className={`w-3.5 h-3.5 ${t.isDark ? "text-amber-400" : "text-[#AB644B]"}`} />
             <span className="hidden sm:inline">Ask AI</span>
           </button>
 
@@ -294,14 +317,14 @@ export const CustomerNavbar: React.FC<CustomerNavbarProps> = ({
           <button
             type="button"
             onClick={toggleTheme}
-            aria-label={`Switch theme (Current: ${t.isDark ? "Premium Gold" : "Forest & Emerald"})`}
-            title={`Switch theme (Current: ${t.isDark ? "Premium Gold" : "Forest & Emerald"})`}
+            aria-label={`Switch theme (Current: ${t.isDark ? "Premium Gold" : "Warm Terracotta"})`}
+            title={`Switch theme (Current: ${t.isDark ? "Premium Gold" : "Warm Terracotta"})`}
             className={`p-2 rounded-xl border flex items-center justify-center transition shrink-0 ${t.secondaryButton}`}
           >
             {theme === "dark" ? (
               <Moon className="w-4 h-4 text-[#d9a83e]" />
             ) : (
-              <Sun className="w-4 h-4 text-amber-500" />
+              <Sun className="w-4 h-4 text-[#AB644B]" />
             )}
           </button>
 
@@ -317,13 +340,39 @@ export const CustomerNavbar: React.FC<CustomerNavbarProps> = ({
             {cartCount > 0 && (
               <span
                 className={`absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] rounded-full text-[10px] font-bold flex items-center justify-center px-1 text-white shadow-sm ${
-                  t.isDark ? "bg-[#d9a83e] text-[#17140d]" : "bg-[#059669]"
+                  t.isDark ? "bg-[#d9a83e] text-[#17140d]" : "bg-[#AB644B]"
                 }`}
               >
                 {cartCount}
               </span>
             )}
           </button>
+
+          {/* Real-time Notification Bell */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+              aria-label={`Notifications (${unreadCount} unread)`}
+              title="Open Notifications Center"
+              className={`relative p-2 rounded-xl flex items-center justify-center transition shrink-0 border ${
+                isNotificationsOpen ? t.primaryButton : t.secondaryButton
+              }`}
+            >
+              <Bell className="w-4 h-4" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full text-[10px] font-black flex items-center justify-center px-1 bg-amber-500 text-stone-950 shadow-md animate-pulse">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </button>
+
+            <NotificationDropdown
+              isOpen={isNotificationsOpen}
+              onClose={() => setIsNotificationsOpen(false)}
+              onActionClick={handleNotificationAction}
+            />
+          </div>
 
           {/* User Profile Avatar shortcut */}
           <button

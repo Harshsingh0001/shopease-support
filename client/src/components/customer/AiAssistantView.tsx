@@ -308,7 +308,7 @@ export const AiAssistantView: React.FC<AiAssistantViewProps> = ({
             className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black transition-all duration-300 hover:scale-105 ${
               t.isDark
                 ? "bg-gradient-to-br from-amber-400/30 via-yellow-500/20 to-amber-700/30 text-amber-300 border border-amber-400/50 shadow-[0_0_25px_rgba(217,168,62,0.4),inset_0_1px_0_rgba(255,255,255,0.2)]"
-                : "bg-[#124a38] text-white shadow-md"
+                : "bg-[#AB644B] text-white shadow-md"
             }`}
           >
             <Bot className="w-6 h-6" />

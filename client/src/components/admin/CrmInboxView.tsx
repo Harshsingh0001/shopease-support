@@ -238,10 +238,10 @@ export const CrmInboxView: React.FC<CrmInboxViewProps> = ({
                     isSelected
                       ? t.isDark
                         ? "bg-[#28251e] border-l-4 border-[#d9a83e] text-[#f5e7bf]"
-                        : "bg-[#eaf4ee] border-l-4 border-[#059669] text-[#059669]"
+                        : "bg-[#D2DCE6]/40 border-l-4 border-[#AB644B] text-[#AB644B]"
                       : t.isDark
                       ? "hover:bg-[#201f1a]"
-                      : "hover:bg-[#f2f7f3]"
+                      : "hover:bg-[#D2DCE6]/20"
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -524,7 +524,7 @@ export const CrmInboxView: React.FC<CrmInboxViewProps> = ({
           <div className="flex items-center gap-3">
             <div
               className={`w-11 h-11 rounded-2xl flex items-center justify-center font-black text-sm shadow-sm ${
-                t.isDark ? "bg-[#382f1c] text-[#f5e7bf]" : "bg-[#124a38] text-white"
+                t.isDark ? "bg-[#382f1c] text-[#f5e7bf]" : "bg-[#AB644B] text-white"
               }`}
             >
               {matchedCustomerProfile.name.slice(0, 2).toUpperCase()}

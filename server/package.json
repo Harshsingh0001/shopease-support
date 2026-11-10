@@ -9,9 +9,9 @@
     "test:voice": "tsx src/tests/voiceTest.ts",
     "test:socket": "tsx src/tests/socketTest.ts",
     "seed": "tsx src/seeds/seedData.ts",
-    "dev": "tsx watch src/server.ts",
-    "build": "tsc -p tsconfig.json",
-    "start": "node dist/server.js"
+    "dev": "node init && tsx watch src/server.ts",
+    "build": "node init && tsc -p tsconfig.json",
+    "start": "node init && node dist/server.js"
   },
   "keywords": [],
   "author": "",

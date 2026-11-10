@@ -143,7 +143,7 @@ export const CustomerHomeView: React.FC<CustomerHomeViewProps> = ({
             onClick={() => onNavigateToView("dashboard")}
             className={`px-3.5 py-2 rounded-2xl text-xs font-bold flex items-center gap-1.5 border transition active:scale-95 ${t.secondaryButton}`}
           >
-            <LayoutDashboard className="w-3.5 h-3.5 text-emerald-500" />
+            <LayoutDashboard className={`w-3.5 h-3.5 ${t.isDark ? "text-amber-400" : "text-[#AB644B]"}`} />
             <span>My Dashboard</span>
           </button>
 
@@ -184,7 +184,7 @@ export const CustomerHomeView: React.FC<CustomerHomeViewProps> = ({
                 className={`p-3 rounded-2xl border text-center transition-all duration-200 flex flex-col items-center justify-between gap-2 hover:-translate-y-0.5 hover:shadow-md ${t.cardMuted} ${t.divider}`}
               >
                 <div className="p-2.5 rounded-xl bg-current/5">
-                  <Icon className="w-5 h-5 text-emerald-500" />
+                  <Icon className={`w-5 h-5 ${t.isDark ? "text-amber-400" : "text-[#AB644B]"}`} />
                 </div>
                 <div>
                   <div className="font-extrabold text-xs">{cat.label}</div>
@@ -289,7 +289,7 @@ export const CustomerHomeView: React.FC<CustomerHomeViewProps> = ({
               type="button"
               onClick={() => onOpenProductDetails(dealProduct)}
               aria-label={`View details and specifications for ${dealProduct.name}`}
-              className="w-full sm:w-64 h-52 sm:h-56 rounded-2xl overflow-hidden cursor-pointer shrink-0 border relative group shadow-md aspect-[4/3] bg-neutral-900 text-left focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full sm:w-64 h-52 sm:h-56 rounded-2xl overflow-hidden cursor-pointer shrink-0 border relative group shadow-md aspect-[4/3] bg-neutral-900 text-left focus:outline-none focus:ring-2 focus:ring-[#AB644B]"
             >
               <img
                 src={getProductEnhancement(dealProduct.sku).image.replace("w=800", "w=480").replace("q=80", "q=75")}
@@ -404,7 +404,7 @@ export const CustomerHomeView: React.FC<CustomerHomeViewProps> = ({
       {/* 6. Clean Policy & 24/7 AI Assistance Card */}
       <div className={`p-6 rounded-3xl border shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${t.card}`}>
         <div className="flex items-center gap-3.5">
-          <div className="p-3.5 rounded-2xl bg-emerald-500/10 text-emerald-500 shrink-0">
+          <div className={`p-3.5 rounded-2xl shrink-0 ${t.isDark ? "bg-amber-500/10 text-amber-400" : "bg-[#AB644B]/15 text-[#AB644B]"}`}>
             <BookOpen className="w-6 h-6" />
           </div>
           <div>
